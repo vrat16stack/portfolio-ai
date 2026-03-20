@@ -2,17 +2,16 @@ name: Portfolio AI Daily Analysis
 
 on:
   schedule:
-    # Runs at 10:15 AM UTC = 3:45 PM IST every day
     - cron: '15 10 * * 1-5'
-    # Runs at 4:00 AM UTC = 9:30 AM IST every Saturday (weekly summary)
     - cron: '0 4 * * 6'
-    # Runs at 10:15 AM UTC = 3:45 PM IST on last day of month
     - cron: '15 10 28-31 * 1-5'
-  workflow_dispatch:  # Allows manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   run-analysis:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -35,45 +34,25 @@ jobs:
         run: |
           cat > config.py << 'EOF'
           import os
-
-          # Email
-          EMAIL_SENDER   = os.environ.get("EMAIL_SENDER", "")
-          EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
-          EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER", "")
-
-          # AI APIs
-          GROQ_API_KEY   = os.environ.get("GROQ_API_KEY", "")
-          GROQ_MODEL     = "llama-3.3-70b-versatile"
-          GEMINI_API_KEY = ""
-
-          # Alpha Vantage
-          ALPHA_VANTAGE_KEY = os.environ.get("ALPHA_VANTAGE_KEY", "")
-
-          # Google Sheets
-          GOOGLE_SHEET_ID         = os.environ.get("GOOGLE_SHEET_ID", "")
+          EMAIL_SENDER          = os.environ.get("EMAIL_SENDER", "")
+          EMAIL_PASSWORD        = os.environ.get("EMAIL_PASSWORD", "")
+          EMAIL_RECEIVER        = os.environ.get("EMAIL_RECEIVER", "")
+          GROQ_API_KEY          = os.environ.get("GROQ_API_KEY", "")
+          GROQ_MODEL            = "llama-3.3-70b-versatile"
+          GEMINI_API_KEY        = ""
+          ALPHA_VANTAGE_KEY     = os.environ.get("ALPHA_VANTAGE_KEY", "")
+          GOOGLE_SHEET_ID       = os.environ.get("GOOGLE_SHEET_ID", "")
           GOOGLE_CREDENTIALS_FILE = "credentials.json"
-          USE_GOOGLE_SHEETS       = True
-
-          # Trading Rules
+          USE_GOOGLE_SHEETS     = True
           SELL_LOSS_THRESHOLD   = -20
           SELL_PROFIT_THRESHOLD = 70
-
-          # Schedule
-          RUN_HOUR   = 15
-          RUN_MINUTE = 45
-
-          # NSE
-          NSE_SUFFIX = ".NS"
-
-          # Holdings (fallback only)
-          HOLDINGS = []
-
-          # Sheet names
-          HOLDINGS_SHEET = "Sheet1"
-          PNL_SHEET      = "Sheet3"
-
-          # Excel (not used on cloud but needed for imports)
-          EXCEL_FILE_PATH = ""
+          RUN_HOUR              = 15
+          RUN_MINUTE            = 45
+          NSE_SUFFIX            = ".NS"
+          HOLDINGS              = []
+          HOLDINGS_SHEET        = "Sheet1"
+          PNL_SHEET             = "Sheet3"
+          EXCEL_FILE_PATH       = ""
           EOF
 
       - name: Run Portfolio AI
@@ -84,5 +63,17 @@ jobs:
           GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
           ALPHA_VANTAGE_KEY: ${{ secrets.ALPHA_VANTAGE_KEY }}
           GOOGLE_SHEET_ID:   ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python main.py
+
+      - name: Deploy dashboard to GitHub Pages
         run: |
-          python main.py
+          cp index.html portfolio_data_temp.json 2>/dev/null || true
+          # Copy last_analysis.json as portfolio_data.json for dashboard
+          if [ -f last_analysis.json ]; then
+            cp last_analysis.json portfolio_data.json
+          fi
+          git config user.name "Portfolio AI Bot"
+          git config user.email "bot@portfolio-ai.com"
+          git add portfolio_data.json || true
+          git diff --staged --quiet || git commit -m "Update portfolio data $(date '+%Y-%m-%d %H:%M')"
+          git push || true
