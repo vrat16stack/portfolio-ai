@@ -71,6 +71,9 @@ jobs:
           # Sheet names
           HOLDINGS_SHEET = "Sheet1"
           PNL_SHEET      = "Sheet3"
+
+          # Excel (not used on cloud but needed for imports)
+          EXCEL_FILE_PATH = ""
           EOF
 
       - name: Run Portfolio AI
