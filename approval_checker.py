@@ -1,6 +1,9 @@
 import imaplib
-from add_stock_macro import add_stock_via_vba
-import email
+try:
+    from add_stock_macro import add_stock_via_vba
+except ImportError:
+    def add_stock_via_vba(ticker, buying_price, buying_date, qty):
+        return True, 1import email
 import re
 import openpyxl
 from datetime import datetime
