@@ -1,25 +1,21 @@
 """
 pnl_updater.py
 When a stock is sold:
-  1. Adds record to Sheet3 with manual columns + Excel formulas
-  2. Removes stock from Sheet1 and renumbers S.no
-  3. Sends P&L email
-
-Sheet3 columns:
-  A=S.no, B=Industry, C=Ticker, D=Stock, E=Buying Date, F=Selling Date,
-  G=Buying Price, H=Selling Price, I=Qty,
-  J=Investment amt (formula), K=Profit per share (formula),
-  L=Total Profit (formula), M=Return% (formula),
-  N=Investment Days (formula), O=Current share price (Stock Data Type),
-  P=Current return (formula), Q=Time in months (formula)
+  - On cloud (USE_GOOGLE_SHEETS=True): Updates Google Sheets + sends P&L email
+  - On local (USE_GOOGLE_SHEETS=False): Updates Excel + sends P&L email
 """
 
 import os
 import time
 from datetime import datetime
 import yfinance as yf
-from config import EXCEL_FILE_PATH, NSE_SUFFIX
+from config import NSE_SUFFIX
 from email_handler import send_report_email
+
+try:
+    from config import EXCEL_FILE_PATH
+except ImportError:
+    EXCEL_FILE_PATH = ""
 
 
 def get_current_price(ticker):
@@ -40,7 +36,6 @@ def process_sell(stock, selling_price, selling_date=None):
 
 
 def _process_sell_sheets(stock, selling_price, selling_date=None):
-    """Process sell using Google Sheets"""
     from sheets_handler import add_to_pnl, remove_stock_from_holdings
     if selling_date is None:
         selling_date = datetime.now().strftime('%Y-%m-%d')
@@ -69,10 +64,7 @@ def _process_sell_sheets(stock, selling_price, selling_date=None):
     if not current_price:
         current_price = selling_price
 
-    # Add to PnL sheet
     add_to_pnl(stock, selling_price, selling_date)
-
-    # Remove from Holdings sheet
     remove_stock_from_holdings(stock["ticker"], buying_price, buying_date)
 
     pnl = {
@@ -104,7 +96,6 @@ def _process_sell_excel(stock, selling_price, selling_date=None):
     buying_date   = str(stock['buying_date'])[:10]
     selling_price = float(selling_price)
 
-    # P&L for email
     investment_amt   = round(buying_price * qty, 2)
     profit_per_share = round(selling_price - buying_price, 2)
     total_profit     = round(profit_per_share * qty, 2)
@@ -142,7 +133,6 @@ def _process_sell_excel(stock, selling_price, selling_date=None):
         'selling_date':     selling_date,
     }
 
-    # Try up to 3 times
     for attempt in range(3):
         try:
             sno = _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_price)
@@ -159,8 +149,11 @@ def _process_sell_excel(stock, selling_price, selling_date=None):
 
 
 def _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_price):
-    import win32com.client
-    import pythoncom
+    try:
+        import win32com.client
+        import pythoncom
+    except ImportError:
+        raise Exception("win32com not available — use Google Sheets mode")
 
     pythoncom.CoInitialize()
     time.sleep(2)
@@ -175,6 +168,11 @@ def _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_p
 
     RIGHT = -4152
     LEFT  = -4131
+
+    next_row = 2
+    while sheet3.Cells(next_row, 1).Value is not None:
+        next_row += 1
+    sno = next_row - 1
 
     def write_cell(col, val, align=RIGHT):
         cell = sheet3.Cells(next_row, col)
@@ -192,41 +190,36 @@ def _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_p
         cell.Font.Color = 0x000000
         cell.HorizontalAlignment = RIGHT
 
-    # ── Find next empty row ───────────────────────────────────
-    next_row = 2
-    while sheet3.Cells(next_row, 1).Value is not None:
-        next_row += 1
-    sno = next_row - 1
+    write_cell(1, int(sno),                         RIGHT)
+    write_cell(2, str(stock.get('industry', '')),   LEFT)
+    write_cell(3, str(stock.get('ticker', '')),     LEFT)
+    write_cell(4, str(stock.get('stock_name', '')), LEFT)
+    write_cell(5, buying_date,                      RIGHT)
+    write_cell(6, selling_date,                     RIGHT)
+    write_cell(7, buying_price,                     RIGHT)
+    write_cell(8, selling_price,                    RIGHT)
+    write_cell(9, int(qty),                         RIGHT)
+    sheet3.Cells(next_row, 7).NumberFormat = "#,##0.00"
+    sheet3.Cells(next_row, 8).NumberFormat = "#,##0.00"
+    sheet3.Cells(next_row, 5).NumberFormat = "DD-MM-YYYY"
+    sheet3.Cells(next_row, 6).NumberFormat = "DD-MM-YYYY"
 
-    # ── Write manual columns A-I ──────────────────────────────
-    write_cell(1, int(sno),                          RIGHT)  # A - S.no
-    write_cell(2, str(stock.get('industry', '')),    LEFT)   # B - Industry
-    write_cell(3, str(stock.get('ticker', '')),      LEFT)   # C - Ticker
-    write_cell(4, str(stock.get('stock_name', '')),  LEFT)   # D - Stock
-    write_cell(5, buying_date,                       RIGHT)  # E - Buying Date
-    write_cell(6, selling_date,                      RIGHT)  # F - Selling Date
-    write_cell(7, buying_price,                      RIGHT)  # G - Buying Price
-    write_cell(8, selling_price,                     RIGHT)  # H - Selling Price
-    write_cell(9, int(qty),                          RIGHT)  # I - Qty
-
-    # ── Write formulas for columns J-Q ───────────────────────
-    write_formula(10, f"=G{next_row}*I{next_row}")                        # J - Investment amt
-    write_formula(11, f"=H{next_row}-G{next_row}")                        # K - Profit per share
-    write_formula(12, f"=K{next_row}*I{next_row}")                        # L - Total Profit
-    write_formula(13, f"=(K{next_row}/G{next_row})*100")                  # M - Return %
-    write_formula(14, f'=DATEDIF(E{next_row},F{next_row},"d")')           # N - Investment Days
-    write_formula(15, f"=C{next_row}.Price")                              # O - Current share price
-    write_formula(16, f"=((O{next_row}-H{next_row})/H{next_row})*100")   # P - Current return
-    write_formula(17, f'=DATEDIF(F{next_row},TODAY(),"m")')               # Q - Time in months
+    write_formula(10, f"=G{next_row}*I{next_row}")
+    write_formula(11, f"=H{next_row}-G{next_row}")
+    write_formula(12, f"=K{next_row}*I{next_row}")
+    write_formula(13, f"=(K{next_row}/G{next_row})*100")
+    write_formula(14, f'=DATEDIF(E{next_row},F{next_row},"d")')
+    write_formula(15, f"=C{next_row}.Price")
+    write_formula(16, f"=((O{next_row}-H{next_row})/H{next_row})*100")
+    write_formula(17, f'=DATEDIF(F{next_row},TODAY(),"m")')
 
     print(f"[pnl_updater] ✅ Added {stock['ticker']} to Sheet3 at row {next_row}")
 
-    # ── Remove from Sheet1 ────────────────────────────────────
     last_row = sheet1.UsedRange.Rows.Count
     deleted_row = None
     for row in range(2, last_row + 1):
-        price_val = sheet1.Cells(row, 5).Value  # Column E = Buying Price in Sheet1
-        date_val  = str(sheet1.Cells(row, 6).Value or '')  # Column F = Buying Date
+        price_val = sheet1.Cells(row, 5).Value
+        date_val  = str(sheet1.Cells(row, 6).Value or '')
         try:
             price_match = price_val and abs(float(price_val) - buying_price) < 0.01
         except:
@@ -237,7 +230,6 @@ def _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_p
             print(f"[pnl_updater] ✅ Removed {stock['ticker']} from Sheet1")
             break
 
-    # Renumber S.no in Sheet1
     if deleted_row:
         last_row = sheet1.UsedRange.Rows.Count
         for row in range(2, last_row + 1):
@@ -254,7 +246,6 @@ def _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_p
         excel.Quit()
     except:
         pass
-
     return sno
 
 
@@ -305,7 +296,7 @@ def send_pnl_email(stock, pnl):
       <tr style="background:#f8f9fa;"><td style="padding:10px 14px;font-weight:bold;">Quantity</td><td style="padding:10px 14px;">{pnl['qty']} shares</td></tr>
       <tr><td style="padding:10px 14px;font-weight:bold;">Investment Amount</td><td style="padding:10px 14px;">Rs.{pnl['investment_amt']:,.2f}</td></tr>
       <tr style="background:#f8f9fa;"><td style="padding:10px 14px;font-weight:bold;">Profit per Share</td><td style="padding:10px 14px;color:{profit_color};font-weight:bold;">{'+'if is_profit else ''}Rs.{pnl['profit_per_share']:,.2f}</td></tr>
-      <tr><td style="padding:10px 14px;font-weight:bold;">Total Profit / Loss</td><td style="padding:10px 14px;color:{profit_color};font-weight:bold;font-size:16px;">{'+'if is_profit else ''}Rs.{pnl['total_profit']:,.2f}</td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;">Total Profit/Loss</td><td style="padding:10px 14px;color:{profit_color};font-weight:bold;font-size:16px;">{'+'if is_profit else ''}Rs.{pnl['total_profit']:,.2f}</td></tr>
       <tr style="background:#f8f9fa;"><td style="padding:10px 14px;font-weight:bold;">Return %</td><td style="padding:10px 14px;color:{profit_color};font-weight:bold;">{'+'if is_profit else ''}{pnl['return_pct']}%</td></tr>
       <tr><td style="padding:10px 14px;font-weight:bold;">Investment Days</td><td style="padding:10px 14px;">{holding_str}</td></tr>
       <tr style="background:#f8f9fa;"><td style="padding:10px 14px;font-weight:bold;">Current Share Price</td><td style="padding:10px 14px;">Rs.{pnl['current_price']:,.2f}</td></tr>
