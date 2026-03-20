@@ -1,14 +1,16 @@
 import imaplib
-try:
-    from add_stock_macro import add_stock_via_vba
-except ImportError:
-    def add_stock_via_vba(ticker, buying_price, buying_date, qty):
-        return True, 1import email
+from add_stock_macro import add_stock_via_vba
+import email
 import re
 import openpyxl
 from datetime import datetime
 import yfinance as yf
-from config import EMAIL_SENDER, EMAIL_PASSWORD, EXCEL_FILE_PATH, HOLDINGS_SHEET, NSE_SUFFIX
+from config import EMAIL_SENDER, EMAIL_PASSWORD, NSE_SUFFIX
+try:
+    from config import EXCEL_FILE_PATH, HOLDINGS_SHEET
+except ImportError:
+    EXCEL_FILE_PATH = ""
+    HOLDINGS_SHEET = "Sheet1"
 from email_handler import send_report_email
 
 
