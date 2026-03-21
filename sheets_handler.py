@@ -190,7 +190,10 @@ def add_stock_to_holdings(ticker, stock_name, industry, buying_price, buying_dat
         ]
 
         holdings_sheet.append_row(new_row)
-        print(f"[sheets] ✅ Added {ticker} to Holdings sheet at row {sno + 1}")
+        new_row_num = sno + 1
+        print(f"[sheets] ✅ Added {ticker} to Holdings sheet at row {new_row_num}")
+        # Add formulas to new row
+        check_and_add_formulas_new_row('holdings', new_row_num)
         return sno
 
     except Exception as e:
@@ -235,11 +238,20 @@ def remove_stock_from_holdings(ticker, buying_price, buying_date):
 
 # ── ADD TO P&L ────────────────────────────────────────────────
 def add_to_pnl(stock, selling_price, selling_date):
-    """Add sold stock record to PnL sheet"""
+    """Add sold stock record to PnL sheet — checks for duplicates first"""
     try:
         _, pnl_sheet = get_sheets()
         records = pnl_sheet.get_all_records()
-        sno     = len(records) + 1
+
+        # Check for duplicate — same ticker + same buying date
+        for row in records:
+            existing_ticker = str(row.get('Ticker', '')).strip().upper()
+            existing_date   = str(row.get('Buying Date', '')).strip()[:10]
+            if existing_ticker == stock['ticker'].upper() and existing_date == str(stock['buying_date'])[:10]:
+                print(f"[sheets] ⚠️ {stock['ticker']} already in PnL — skipping duplicate")
+                return len(records)
+
+        sno = len(records) + 1
 
         buying_price    = float(stock['buying_price'])
         qty             = int(stock['qty'])
@@ -286,7 +298,10 @@ def add_to_pnl(stock, selling_price, selling_date):
         ]
 
         pnl_sheet.append_row(new_row)
-        print(f"[sheets] ✅ Added {stock['ticker']} to PnL sheet at row {sno + 1}")
+        new_row_num = sno + 1
+        print(f"[sheets] ✅ Added {stock['ticker']} to PnL sheet at row {new_row_num}")
+        # Add formulas to new row
+        check_and_add_formulas_new_row('pnl', new_row_num)
         return sno
 
     except Exception as e:
@@ -294,8 +309,96 @@ def add_to_pnl(stock, selling_price, selling_date):
         return None
 
 
+def setup_holdings_formulas():
+    """Add formulas to Holdings sheet columns H,J,K,M,N — run once"""
+    try:
+        holdings_sheet, _ = get_sheets()
+        records = holdings_sheet.get_all_records()
+        if not records:
+            print("[sheets] No holdings data to add formulas to")
+            return
+
+        for i in range(2, len(records) + 2):  # Start from row 2
+            # H = Investment amt = E*G (Buying Price * Qty)
+            holdings_sheet.update_cell(i, 8,  f'=E{i}*G{i}')
+            # J = Profit per share = I-E (CSP - Buying Price)
+            holdings_sheet.update_cell(i, 10, f'=I{i}-E{i}')
+            # K = Total Profit = J*G
+            holdings_sheet.update_cell(i, 11, f'=J{i}*G{i}')
+            # M = Growth = ((I-E)/E)*100
+            holdings_sheet.update_cell(i, 13, f'=IF(E{i}=0,0,((I{i}-E{i})/E{i})*100)')
+            # N = Investment Days = TODAY() - Buying Date
+            holdings_sheet.update_cell(i, 14, f'=IF(F{i}="",0,DAYS(TODAY(),F{i}))')
+            print(f"[sheets] ✅ Formulas added to Holdings row {i}")
+
+        print("[sheets] ✅ Holdings formulas setup complete!")
+    except Exception as e:
+        print(f"[sheets] Error setting up Holdings formulas: {e}")
+
+
+def setup_pnl_formulas():
+    """Add formulas to PnL sheet — run once"""
+    try:
+        _, pnl_sheet = get_sheets()
+        records = pnl_sheet.get_all_records()
+        if not records:
+            print("[sheets] No PnL data to add formulas to")
+            return
+
+        for i in range(2, len(records) + 2):
+            # J = Investment amt = G*I (Buying Price * Qty)
+            pnl_sheet.update_cell(i, 10, f'=G{i}*I{i}')
+            # K = Profit per share = H-G (Selling Price - Buying Price)
+            pnl_sheet.update_cell(i, 11, f'=H{i}-G{i}')
+            # L = Total Profit = K*I
+            pnl_sheet.update_cell(i, 12, f'=K{i}*I{i}')
+            # M = Return % = ((H-G)/G)*100
+            pnl_sheet.update_cell(i, 13, f'=IF(G{i}=0,0,((H{i}-G{i})/G{i})*100)')
+            # N = Investment Days = DAYS(Selling Date, Buying Date)
+            pnl_sheet.update_cell(i, 14, f'=IF(E{i}="",0,DAYS(F{i},E{i}))')
+            # P = Current Return = ((O-H)/H)*100
+            pnl_sheet.update_cell(i, 16, f'=IF(H{i}=0,0,((O{i}-H{i})/H{i})*100)')
+            # Q = Time in months = DATEDIF(Selling Date, TODAY(), "m")
+            pnl_sheet.update_cell(i, 17, f'=IFERROR(DATEDIF(F{i},TODAY(),"m"),0)')
+            print(f"[sheets] ✅ Formulas added to PnL row {i}")
+
+        print("[sheets] ✅ PnL formulas setup complete!")
+    except Exception as e:
+        print(f"[sheets] Error setting up PnL formulas: {e}")
+
+
+def check_and_add_formulas_new_row(sheet_type, row_num):
+    """Add formulas to a newly added row"""
+    try:
+        holdings_sheet, pnl_sheet = get_sheets()
+        i = row_num
+        if sheet_type == 'holdings':
+            holdings_sheet.update_cell(i, 8,  f'=E{i}*G{i}')
+            holdings_sheet.update_cell(i, 10, f'=I{i}-E{i}')
+            holdings_sheet.update_cell(i, 11, f'=J{i}*G{i}')
+            holdings_sheet.update_cell(i, 13, f'=IF(E{i}=0,0,((I{i}-E{i})/E{i})*100)')
+            holdings_sheet.update_cell(i, 14, f'=IF(F{i}="",0,DAYS(TODAY(),F{i}))')
+        elif sheet_type == 'pnl':
+            pnl_sheet.update_cell(i, 10, f'=G{i}*I{i}')
+            pnl_sheet.update_cell(i, 11, f'=H{i}-G{i}')
+            pnl_sheet.update_cell(i, 12, f'=K{i}*I{i}')
+            pnl_sheet.update_cell(i, 13, f'=IF(G{i}=0,0,((H{i}-G{i})/G{i})*100)')
+            pnl_sheet.update_cell(i, 14, f'=IF(E{i}="",0,DAYS(F{i},E{i}))')
+            pnl_sheet.update_cell(i, 16, f'=IF(H{i}=0,0,((O{i}-H{i})/H{i})*100)')
+            pnl_sheet.update_cell(i, 17, f'=IFERROR(DATEDIF(F{i},TODAY(),"m"),0)')
+    except Exception as e:
+        print(f"[sheets] Error adding formulas to row {i}: {e}")
+
+
 if __name__ == "__main__":
-    print("Testing Google Sheets connection...")
-    holdings = read_holdings()
-    for h in holdings:
-        print(f"  {h['ticker']} | Buy: {h['buying_price']} | Qty: {h['qty']}")
+    import sys
+    if '--setup-formulas' in sys.argv:
+        print("Setting up Holdings formulas...")
+        setup_holdings_formulas()
+        print("Setting up PnL formulas...")
+        setup_pnl_formulas()
+    else:
+        print("Testing Google Sheets connection...")
+        holdings = read_holdings()
+        for h in holdings:
+            print(f"  {h['ticker']} | Buy: {h['buying_price']} | Qty: {h['qty']}")
