@@ -325,10 +325,10 @@ def setup_holdings_formulas():
             holdings_sheet.update_cell(i, 10, f'=I{i}-E{i}')
             # K = Total Profit = J*G
             holdings_sheet.update_cell(i, 11, f'=J{i}*G{i}')
-            # M = Growth = ((I-E)/E)*100
-            holdings_sheet.update_cell(i, 13, f'=IF(E{i}=0,0,((I{i}-E{i})/E{i})*100)')
-            # N = Investment Days = TODAY() - Buying Date
-            holdings_sheet.update_cell(i, 14, f'=IF(F{i}="",0,DAYS(TODAY(),F{i}))')
+            # L = Growth = ((I-E)/E)*100 (Networth column removed, shifted left)
+            holdings_sheet.update_cell(i, 12, f'=IF(E{i}=0,0,((I{i}-E{i})/E{i})*100)')
+            # M = Investment Days = TODAY() - Buying Date
+            holdings_sheet.update_cell(i, 13, f'=IF(F{i}="",0,DAYS(TODAY(),F{i}))')
             print(f"[sheets] ✅ Formulas added to Holdings row {i}")
 
         print("[sheets] ✅ Holdings formulas setup complete!")
@@ -376,8 +376,8 @@ def check_and_add_formulas_new_row(sheet_type, row_num):
             holdings_sheet.update_cell(i, 8,  f'=E{i}*G{i}')
             holdings_sheet.update_cell(i, 10, f'=I{i}-E{i}')
             holdings_sheet.update_cell(i, 11, f'=J{i}*G{i}')
-            holdings_sheet.update_cell(i, 13, f'=IF(E{i}=0,0,((I{i}-E{i})/E{i})*100)')
-            holdings_sheet.update_cell(i, 14, f'=IF(F{i}="",0,DAYS(TODAY(),F{i}))')
+            holdings_sheet.update_cell(i, 12, f'=IF(E{i}=0,0,((I{i}-E{i})/E{i})*100)')
+            holdings_sheet.update_cell(i, 13, f'=IF(F{i}="",0,DAYS(TODAY(),F{i}))')
         elif sheet_type == 'pnl':
             pnl_sheet.update_cell(i, 10, f'=G{i}*I{i}')
             pnl_sheet.update_cell(i, 11, f'=H{i}-G{i}')
