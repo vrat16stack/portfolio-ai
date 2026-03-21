@@ -191,6 +191,29 @@ def run_analysis(test_mode=False):
         except Exception as e:
             print(f"[main] Cache save error: {e}")
 
+    # ── Fetch indices for dashboard ──────────────────────────
+    indices_data = []
+    try:
+        import yfinance as yf
+        idx_list = [
+            {"symbol": "^NSEI",    "name": "NIFTY 50"},
+            {"symbol": "^BSESN",   "name": "SENSEX"},
+            {"symbol": "^NSEBANK", "name": "BANK NIFTY"},
+            {"symbol": "NIFTYMIDCAP150.NS", "name": "MIDCAP 150"},
+        ]
+        for idx in idx_list:
+            try:
+                info  = yf.Ticker(idx['symbol']).info
+                price = info.get('regularMarketPrice') or info.get('currentPrice') or 0
+                prev  = info.get('previousClose') or price
+                chg   = round(price - prev, 2)
+                pct   = round((chg / prev * 100), 2) if prev else 0
+                indices_data.append({"name": idx['name'], "price": round(price,2), "change": chg, "change_pct": pct})
+            except:
+                indices_data.append({"name": idx['name'], "price": 0, "change": 0, "change_pct": 0})
+    except Exception as e:
+        print(f"[main] Indices fetch error: {e}")
+
     # ── Save dashboard cache ─────────────────────────────────
     if not test_mode:
         try:
@@ -226,6 +249,8 @@ def run_analysis(test_mode=False):
 
             cache = {
                 'stocks':           clean_stocks,
+                'indices':          indices_data,
+                'fear_greed':       fear_greed,
                 'total_investment': round(total_investment, 2),
                 'total_current':    round(total_current, 2),
                 'total_profit':     total_profit,
