@@ -44,10 +44,42 @@ else:
     print("[main] Using Excel as data source")
 
 
+def is_trading_day():
+    """Check if today is a valid NSE trading day"""
+    from datetime import datetime
+    today = datetime.now()
+    if today.weekday() >= 5:  # Saturday or Sunday
+        return False, f"Market closed — {today.strftime('%A')}"
+    nse_holidays = [
+        "2026-01-26","2026-03-17","2026-04-02","2026-04-03",
+        "2026-04-14","2026-04-30","2026-05-01","2026-08-15",
+        "2026-10-02","2026-10-20","2026-11-04","2026-11-05",
+        "2026-11-25","2026-12-25",
+    ]
+    if today.strftime('%Y-%m-%d') in nse_holidays:
+        return False, "NSE Holiday today"
+    return True, "Trading day"
+
+
 def run_analysis(test_mode=False):
     print("\n" + "="*60)
     print(f"  PORTFOLIO AI — Starting analysis at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}")
     print("="*60 + "\n")
+
+    # ── CHECK IF TRADING DAY ──────────────────────────────────
+    if not test_mode:
+        trading, reason = is_trading_day()
+        if not trading:
+            print(f"⏸️  {reason} — Markets closed. Skipping analysis.")
+            # Still send weekly/monthly summary if due
+            if should_send_weekly():
+                print("📅 Sending weekly portfolio summary...")
+                send_weekly_summary()
+            elif should_send_monthly():
+                print("📆 Sending monthly portfolio summary...")
+                send_monthly_summary()
+            print("="*60 + "\n")
+            return []
 
     # ── STEP 1: Read Holdings ─────────────────────────────────
     print("📂 Step 1: Reading holdings from Excel...")
@@ -162,15 +194,46 @@ def run_analysis(test_mode=False):
         process_approvals()
         print()
 
-    # ── STEP 9: Scout New Growth Stocks (daily) ─────────────
+    # ── STEP 9: Scout New Growth Stocks (only on trading days) ──
     if not test_mode:
-        print("🔍 Step 9: Scouting new growth stocks...")
-        candidates = find_growth_stocks(top_n=5)
-        if candidates:
-            send_scout_email(candidates)
-            print(f"   → Scout email sent with {len(candidates)} candidates.")
+        from datetime import datetime
+        today = datetime.now()
+        weekday = today.weekday()  # 0=Mon, 5=Sat, 6=Sun
+
+        # NSE 2026 holidays
+        nse_holidays = [
+            "2026-01-26",  # Republic Day
+            "2026-03-17",  # Holi
+            "2026-04-02",  # Ram Navami
+            "2026-04-03",  # Good Friday
+            "2026-04-14",  # Dr. Ambedkar Jayanti
+            "2026-04-30",  # Maharashtra Day Eve
+            "2026-05-01",  # Maharashtra Day
+            "2026-08-15",  # Independence Day
+            "2026-10-02",  # Gandhi Jayanti
+            "2026-10-20",  # Dussehra
+            "2026-11-04",  # Diwali Laxmi Pujan
+            "2026-11-05",  # Diwali Balipratipada
+            "2026-11-25",  # Gurunanak Jayanti
+            "2026-12-25",  # Christmas
+        ]
+        today_str = today.strftime('%Y-%m-%d')
+        is_weekend = weekday >= 5
+        is_holiday = today_str in nse_holidays
+
+        # Scout ONLY on weekdays (Mon-Fri), never on weekends
+        if weekday >= 5:
+            print(f"🔍 Step 9: Weekend — no scout today.")
+        elif is_holiday:
+            print(f"🔍 Step 9: NSE holiday today — skipping scout.")
         else:
-            print("   → No strong candidates found today.")
+            print("🔍 Step 9: Scouting new growth stocks...")
+            candidates = find_growth_stocks(top_n=5)
+            if candidates:
+                send_scout_email(candidates)
+                print(f"   → Scout email sent with {len(candidates)} candidates.")
+            else:
+                print("   → No strong candidates found today.")
         print()
 
     # ── Save analysis cache for dashboard ───────────────────
