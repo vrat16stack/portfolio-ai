@@ -46,7 +46,6 @@ else:
 
 def is_trading_day():
     """Check if today is a valid NSE trading day"""
-    from datetime import datetime
     today = datetime.now()
     if today.weekday() >= 5:  # Saturday or Sunday
         return False, f"Market closed — {today.strftime('%A')}"
@@ -196,7 +195,6 @@ def run_analysis(test_mode=False):
 
     # ── STEP 9: Scout New Growth Stocks (only on trading days) ──
     if not test_mode:
-        from datetime import datetime
         today = datetime.now()
         weekday = today.weekday()  # 0=Mon, 5=Sat, 6=Sun
 
