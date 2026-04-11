@@ -2,9 +2,17 @@ name: Portfolio AI Daily Analysis
 
 on:
   schedule:
+    # 3:45 PM IST (Mon-Fri) — main daily analysis
     - cron: '15 10 * * 1-5'
-    - cron: '0 4 * * 6'
+    # 9:20 AM IST (Mon-Fri) — morning job: execute pending sells at open price (Flaw 3.4)
+    - cron: '50 3 * * 1-5'
+    # 8:00 AM IST Saturday — weekly summary
+    - cron: '30 2 * * 6'
+    # Last day of month safety net (Mon-Fri only)
     - cron: '15 10 28-31 * 1-5'
+    # 7:00 AM IST Sunday — weekly Google Sheets backup (Flaw 5.3)
+    - cron: '30 1 * * 0'
+
   workflow_dispatch:
 
 jobs:
@@ -24,7 +32,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install gspread google-auth yfinance ta groq flask pandas openpyxl requests
+          pip install gspread google-auth yfinance ta groq flask pandas openpyxl requests beautifulsoup4
 
       - name: Create credentials file
         run: |
@@ -34,41 +42,127 @@ jobs:
         run: |
           cat > config.py << 'EOF'
           import os
-          EMAIL_SENDER          = os.environ.get("EMAIL_SENDER", "")
-          EMAIL_PASSWORD        = os.environ.get("EMAIL_PASSWORD", "")
-          EMAIL_RECEIVER        = os.environ.get("EMAIL_RECEIVER", "")
-          GROQ_API_KEY          = os.environ.get("GROQ_API_KEY", "")
-          GROQ_MODEL            = "llama-3.3-70b-versatile"
-          GEMINI_API_KEY        = ""
-          ALPHA_VANTAGE_KEY     = os.environ.get("ALPHA_VANTAGE_KEY", "")
-          GOOGLE_SHEET_ID       = os.environ.get("GOOGLE_SHEET_ID", "")
+          EMAIL_SENDER            = os.environ.get("EMAIL_SENDER", "")
+          EMAIL_PASSWORD          = os.environ.get("EMAIL_PASSWORD", "")
+          EMAIL_RECEIVER          = os.environ.get("EMAIL_RECEIVER", "")
+          GROQ_API_KEY            = os.environ.get("GROQ_API_KEY", "")
+          GROQ_MODEL              = "llama-3.3-70b-versatile"
+          GEMINI_API_KEY          = ""
+          ALPHA_VANTAGE_KEY       = ""
+          GOOGLE_SHEET_ID         = os.environ.get("GOOGLE_SHEET_ID", "")
           GOOGLE_CREDENTIALS_FILE = "credentials.json"
-          USE_GOOGLE_SHEETS     = True
-          SELL_LOSS_THRESHOLD   = -20
-          SELL_PROFIT_THRESHOLD = 70
-          RUN_HOUR              = 15
-          RUN_MINUTE            = 45
-          NSE_SUFFIX            = ".NS"
-          HOLDINGS              = []
-          HOLDINGS_SHEET        = "Sheet1"
-          PNL_SHEET             = "Sheet3"
-          EXCEL_FILE_PATH       = ""
+          USE_GOOGLE_SHEETS       = True
+          SELL_LOSS_THRESHOLD     = -20
+          SELL_PROFIT_THRESHOLD   = 70
+          RUN_HOUR                = 15
+          RUN_MINUTE              = 45
+          NSE_SUFFIX              = ".NS"
+          HOLDINGS                = []
+          HOLDINGS_SHEET          = "Sheet1"
+          PNL_SHEET               = "Sheet3"
+          EXCEL_FILE_PATH         = ""
           EOF
 
-      - name: Run Portfolio AI
+      # ── Detect which job to run based on UTC time and day ──────────────────
+      - name: Detect job type
+        id: detect
+        run: |
+          HOUR=$(date -u +%H)
+          DOW=$(date -u +%u)   # 1=Mon ... 7=Sun
+          DAY=$(date -u +%d)
+          MONTH=$(date -u +%m)
+          YEAR=$(date -u +%Y)
+
+          # Manual dispatch — default to analysis
+          JOB="analysis"
+
+          # Sunday = backup
+          if [ "$DOW" = "7" ]; then
+            JOB="backup"
+
+          # Saturday = weekly summary
+          elif [ "$DOW" = "6" ]; then
+            JOB="weekly"
+
+          # Morning job (3:50 UTC = 9:20 AM IST)
+          elif [ "$HOUR" = "3" ]; then
+            JOB="morning_sells"
+
+          # Last day of month — monthly + analysis
+          else
+            LAST_DAY=$(python3 -c "import calendar; print(calendar.monthrange(int('$YEAR'), int('$MONTH'))[1])")
+            if [ "$DAY" = "$LAST_DAY" ]; then
+              JOB="monthly_and_analysis"
+            fi
+          fi
+
+          echo "job=$JOB" >> $GITHUB_OUTPUT
+          echo "Detected job: $JOB"
+
+      # ── Morning job: Execute pending sells at open price (Flaw 3.4) ────────
+      - name: Run morning sells (9:20 AM IST)
+        if: steps.detect.outputs.job == 'morning_sells'
         env:
-          EMAIL_SENDER:      ${{ secrets.EMAIL_SENDER }}
-          EMAIL_PASSWORD:    ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER:    ${{ secrets.EMAIL_RECEIVER }}
-          GROQ_API_KEY:      ${{ secrets.GROQ_API_KEY }}
-          ALPHA_VANTAGE_KEY: ${{ secrets.ALPHA_VANTAGE_KEY }}
-          GOOGLE_SHEET_ID:   ${{ secrets.GOOGLE_SHEET_ID }}
+          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
+          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python main.py --morning
+
+      # ── Daily analysis (3:45 PM IST) ───────────────────────────────────────
+      - name: Run daily analysis (3:45 PM IST)
+        if: steps.detect.outputs.job == 'analysis' || steps.detect.outputs.job == 'monthly_and_analysis'
+        env:
+          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
+          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: python main.py
 
-      - name: Deploy dashboard to GitHub Pages
+      # ── Weekly summary (Saturday 8:00 AM IST) ──────────────────────────────
+      - name: Run weekly summary (Saturday)
+        if: steps.detect.outputs.job == 'weekly'
+        env:
+          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
+          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python weekly_monthly_summary.py --weekly
+
+      # ── Monthly summary (last day of month) ────────────────────────────────
+      - name: Run monthly summary
+        if: steps.detect.outputs.job == 'monthly' || steps.detect.outputs.job == 'monthly_and_analysis'
+        env:
+          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
+          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python weekly_monthly_summary.py --monthly
+
+      # ── Sunday backup (Flaw 5.3) ────────────────────────────────────────────
+      - name: Run Google Sheets backup (Sunday)
+        if: steps.detect.outputs.job == 'backup'
+        env:
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python sheets_handler.py --backup
+
+      - name: Commit backup to repo (Flaw 5.3)
+        if: steps.detect.outputs.job == 'backup'
         run: |
-          cp index.html portfolio_data_temp.json 2>/dev/null || true
-          # Copy last_analysis.json as portfolio_data.json for dashboard
+          git config user.name "Portfolio AI Bot"
+          git config user.email "bot@portfolio-ai.com"
+          git add backup_*.json || true
+          git diff --staged --quiet || git commit -m "Weekly backup $(date '+%Y-%m-%d')"
+          git push || true
+
+      # ── Deploy dashboard to GitHub Pages ───────────────────────────────────
+      - name: Deploy dashboard
+        if: steps.detect.outputs.job == 'analysis' || steps.detect.outputs.job == 'monthly_and_analysis'
+        run: |
           if [ -f last_analysis.json ]; then
             cp last_analysis.json portfolio_data.json
           fi
