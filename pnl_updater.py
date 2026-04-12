@@ -3,6 +3,9 @@ pnl_updater.py
 When a stock is sold:
   - On cloud (USE_GOOGLE_SHEETS=True): Updates Google Sheets + sends P&L email
   - On local (USE_GOOGLE_SHEETS=False): Updates Excel + sends P&L email
+
+FLAW 3.4 FIX: target_hit is now read from stock dict (where it is actually stored),
+not from pnl dict (where it was never set — existing bug fixed).
 """
 
 import os
@@ -21,7 +24,7 @@ except ImportError:
 def get_current_price(ticker):
     try:
         stock = yf.Ticker(ticker + NSE_SUFFIX)
-        info = stock.info
+        info  = stock.info
         price = info.get('currentPrice') or info.get('regularMarketPrice')
         return round(float(price), 2) if price else None
     except:
@@ -54,10 +57,10 @@ def _process_sell_sheets(stock, selling_price, selling_date=None):
         bd = datetime.strptime(buying_date, "%Y-%m-%d")
         sd = datetime.strptime(selling_date, "%Y-%m-%d")
         investment_days = (sd - bd).days
-        time_months = round(investment_days / 30.44, 1)
+        time_months     = round(investment_days / 30.44, 1)
     except:
         investment_days = 0
-        time_months = 0
+        time_months     = 0
 
     current_price = get_current_price(stock["ticker"])
     current_return = round(((current_price - selling_price) / selling_price) * 100, 2) if current_price else 0.0
@@ -83,7 +86,9 @@ def _process_sell_sheets(stock, selling_price, selling_date=None):
         "selling_date":     selling_date,
         "sno":              1,
     }
-    target_hit = pnl.get('target_hit', False)
+
+    # FLAW 3.4 FIX: target_hit comes from stock dict, not pnl dict
+    target_hit = stock.get('target_hit', False)
     send_pnl_email(stock, pnl, target_hit=target_hit)
     return pnl
 
@@ -138,7 +143,9 @@ def _process_sell_excel(stock, selling_price, selling_date=None):
         try:
             sno = _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_price)
             pnl['sno'] = sno
-            send_pnl_email(stock, pnl)
+            # FLAW 3.4 FIX: target_hit from stock dict
+            target_hit = stock.get('target_hit', False)
+            send_pnl_email(stock, pnl, target_hit=target_hit)
             return pnl
         except Exception as e:
             if attempt < 2:
@@ -214,9 +221,9 @@ def _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_p
     write_formula(16, f"=((O{next_row}-H{next_row})/H{next_row})*100")
     write_formula(17, f'=DATEDIF(F{next_row},TODAY(),"m")')
 
-    print(f"[pnl_updater] ✅ Added {stock['ticker']} to Sheet3 at row {next_row}")
+    print(f"[pnl_updater] Added {stock['ticker']} to Sheet3 at row {next_row}")
 
-    last_row = sheet1.UsedRange.Rows.Count
+    last_row    = sheet1.UsedRange.Rows.Count
     deleted_row = None
     for row in range(2, last_row + 1):
         price_val = sheet1.Cells(row, 5).Value
@@ -228,7 +235,7 @@ def _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_p
         if price_match and buying_date[:7] in date_val:
             deleted_row = row
             sheet1.Rows(row).Delete()
-            print(f"[pnl_updater] ✅ Removed {stock['ticker']} from Sheet1")
+            print(f"[pnl_updater] Removed {stock['ticker']} from Sheet1")
             break
 
     if deleted_row:
@@ -236,7 +243,7 @@ def _excel_update(stock, buying_price, qty, buying_date, selling_date, selling_p
         for row in range(2, last_row + 1):
             if sheet1.Cells(row, 1).Value is not None:
                 sheet1.Cells(row, 1).Value = row - 1
-        print(f"[pnl_updater] ✅ Sheet1 S.no renumbered")
+        print(f"[pnl_updater] Sheet1 S.no renumbered")
 
     wb.Save()
     try:
@@ -314,16 +321,17 @@ def send_pnl_email(stock, pnl, target_hit=False):
 </body></html>"""
 
     send_report_email(subject, html)
-    print(f"[pnl_updater] 📧 P&L email sent for {stock.get('ticker','')}")
+    print(f"[pnl_updater] P&L email sent for {stock.get('ticker','')}")
 
 
 if __name__ == "__main__":
     test_stock = {
-        'ticker': 'LT',
-        'stock_name': 'Larsen & Toubro',
-        'industry': 'Construction & Engineering',
+        'ticker':       'LT',
+        'stock_name':   'Larsen & Toubro',
+        'industry':     'Construction & Engineering',
         'buying_price': 2296.80,
-        'buying_date': '2023-05-11',
-        'qty': 10,
+        'buying_date':  '2023-05-11',
+        'qty':          10,
+        'target_hit':   False,
     }
     process_sell(test_stock, selling_price=4402.70)
