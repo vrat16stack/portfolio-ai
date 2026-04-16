@@ -4,14 +4,15 @@ on:
   schedule:
     # 3:45 PM IST (Mon-Fri) — main daily analysis
     - cron: '15 10 * * 1-5'
-    # 9:20 AM IST (Mon-Fri) — morning job: execute pending sells at open price (Flaw 3.4)
+    # 9:00 AM IST (Mon-Fri) — approval checker: read YES replies, store PENDING BUY
+    - cron: '30 3 * * 1-5'
+    # 9:20 AM IST (Mon-Fri) — morning job: execute pending sells + pending buys at open price
     - cron: '50 3 * * 1-5'
     # 8:00 AM IST Saturday — weekly summary
     - cron: '30 2 * * 6'
     # 7:00 AM IST Sunday — weekly Google Sheets backup (Flaw 5.3)
     - cron: '30 1 * * 0'
     # NOTE: Month-end detection is handled INSIDE main.py via should_send_monthly()
-    # No separate cron needed — avoids duplicate emails on days 28-31
 
   workflow_dispatch:
 
@@ -68,12 +69,12 @@ jobs:
         id: detect
         run: |
           HOUR=$(date -u +%H)
+          MIN=$(date -u +%M)
           DOW=$(date -u +%u)   # 1=Mon ... 7=Sun
           DAY=$(date -u +%d)
           MONTH=$(date -u +%m)
           YEAR=$(date -u +%Y)
 
-          # Manual dispatch — default to analysis
           JOB="analysis"
 
           # Sunday = backup
@@ -84,9 +85,16 @@ jobs:
           elif [ "$DOW" = "6" ]; then
             JOB="weekly"
 
-          # Morning job (3:50 UTC = 9:20 AM IST)
+          # Morning window (3:xx UTC = 9:xx AM IST)
           elif [ "$HOUR" = "3" ]; then
-            JOB="morning_sells"
+            # 3:30 UTC = 9:00 AM IST → approval checker (read Gmail, store PENDING BUY)
+            # 3:50 UTC = 9:20 AM IST → morning job (execute pending sells + pending buys)
+            # Use minute to distinguish the two morning jobs
+            if [ "$MIN" -le "40" ]; then
+              JOB="morning_approvals"
+            else
+              JOB="morning_sells"
+            fi
 
           # Last day of month — monthly + analysis
           else
@@ -97,10 +105,21 @@ jobs:
           fi
 
           echo "job=$JOB" >> $GITHUB_OUTPUT
-          echo "Detected job: $JOB"
+          echo "Detected job: $JOB (UTC $HOUR:$MIN, DOW=$DOW)"
 
-      # ── Morning job: Execute pending sells at open price (Flaw 3.4) ────────
-      - name: Run morning sells (9:20 AM IST)
+      # ── 9:00 AM IST: Read Gmail replies, store PENDING BUY in PendingBuys sheet ──
+      - name: Run approval checker (9:00 AM IST)
+        if: steps.detect.outputs.job == 'morning_approvals'
+        env:
+          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
+          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python approval_checker.py
+
+      # ── 9:20 AM IST: Execute pending sells + pending buys at actual open price ──
+      - name: Run morning job (9:20 AM IST)
         if: steps.detect.outputs.job == 'morning_sells'
         env:
           EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
