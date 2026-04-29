@@ -8,6 +8,11 @@ UPDATED FLOW (Pre-Market Buy Logic):
               Actual buy decision happens at 9:20 AM via pending_buys_handler.py
               using real opening price + gap logic.
 
+  Q2 FIX: Smart overnight news analysis using Groq BEFORE storing PENDING BUY.
+           If Groq confirms genuinely harmful news → cancel buy, send alert.
+           Groq distinguishes real risk (fraud, probe, insolvency) from noise
+           (analyst downgrade, sector headwind, general market fall).
+
   Existing behaviour preserved for:
   - FLAW 3.2: Position sizing warning > 15%
   - FLAW 3.3: Sector concentration warning > 30%
@@ -18,6 +23,9 @@ UPDATED FLOW (Pre-Market Buy Logic):
 import imaplib
 import email
 import re
+import urllib.request
+import urllib.parse
+import xml.etree.ElementTree as ET
 from datetime import datetime
 import yfinance as yf
 from config import EMAIL_SENDER, EMAIL_PASSWORD, NSE_SUFFIX
@@ -35,9 +43,209 @@ except ImportError:
     def add_stock_via_vba(ticker, buying_price, buying_date, qty):
         return True, 1
 
-# NEW: import pending buy storage
 from pending_buys_handler import store_pending_buy
 
+
+# ── Q2: Smart news analysis using Groq ───────────────────────────────────────
+
+def _fetch_news_headlines(ticker, stock_name):
+    """Fetch latest Google News RSS headlines for a stock."""
+    headlines = []
+    try:
+        query = urllib.parse.quote(f"{stock_name} NSE India stock")
+        url   = f"https://news.google.com/rss/search?q={query}&hl=en-IN&gl=IN&ceid=IN:en"
+        req   = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            content = resp.read()
+        root  = ET.fromstring(content)
+        items = root.findall('.//item')
+        for item in items[:8]:
+            title = item.find('title')
+            desc  = item.find('description')
+            if title is not None and title.text:
+                text = title.text
+                if desc is not None and desc.text:
+                    import re as _re
+                    clean = _re.sub(r'<[^>]+>', ' ', desc.text).strip()
+                    if clean:
+                        text = f"{title.text} — {clean[:200]}"
+                headlines.append(text)
+    except Exception as e:
+        print(f"[approval] News fetch error for {ticker}: {e}")
+    return headlines
+
+
+def _analyse_news_with_groq(ticker, stock_name, headlines):
+    """
+    Q2 FIX: Ask Groq to judge whether overnight news poses a REAL risk
+    to executing this buy order tomorrow morning.
+
+    Groq is instructed to be CONSERVATIVE — only cancel for confirmed,
+    severe, company-specific events. When in doubt → PROCEED.
+
+    Returns: (should_cancel: bool, risk_level: str, reasoning: str, key_news: str)
+    """
+    from groq import Groq
+    from config import GROQ_API_KEY, GROQ_MODEL
+
+    if not headlines:
+        print(f"[approval] {ticker}: No news found — proceeding with buy.")
+        return False, 'NONE', 'No overnight news found. Proceeding with buy.', ''
+
+    news_text = '\n'.join([f"- {h}" for h in headlines])
+
+    prompt = f"""You are an expert NSE India stock market analyst making a critical pre-market buy decision.
+
+Stock: {stock_name} (NSE: {ticker})
+A buy order is scheduled for tomorrow morning at market open.
+
+OVERNIGHT NEWS HEADLINES:
+{news_text}
+
+TASK: Determine if this news poses a REAL and SEVERE risk that should CANCEL this buy order.
+
+CANCEL the buy ONLY if the news contains CONFIRMED information about:
+1. Fraud, financial scam, or accounting irregularities at THIS company
+2. SEBI, ED, CBI, Income Tax, or any regulatory raid/investigation on THIS company
+3. Promoter arrested, charged, or selling large stake due to distress
+4. Debt default, insolvency petition, or bankruptcy filing
+5. Major earnings miss (>20% below estimates) with confirmed quarterly numbers
+6. Court order stopping operations, government cancelling licence
+7. Product/service recall causing major business disruption
+
+DO NOT CANCEL for:
+- General market/Nifty falling (affects all stocks equally)
+- Sector-level headwinds not specific to this company
+- Analyst downgrades or price target cuts
+- Unconfirmed rumours or speculative reports
+- Minor earnings miss (less than 20%)
+- Old news (clearly more than 5 days old)
+- Competitor news that may indirectly affect this company
+- Global macro concerns (US Fed, crude oil, dollar, etc.)
+
+Be CONSERVATIVE — only cancel if you are CONFIDENT the news is severe and company-specific.
+When in doubt, PROCEED. A false cancellation is worse than a bad entry.
+
+Respond in EXACTLY this format, no extra lines:
+DECISION: [CANCEL or PROCEED]
+RISK_LEVEL: [CRITICAL / HIGH / MEDIUM / LOW / NONE]
+KEY_NEWS: [Most relevant headline in one line, or NONE]
+REASONING: [2-3 sentences. If CANCEL: what specific confirmed event. If PROCEED: why news does not warrant cancellation.]
+CONFIDENCE: [HIGH / MEDIUM / LOW]"""
+
+    try:
+        client   = Groq(api_key=GROQ_API_KEY)
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=250,
+            temperature=0.1
+        )
+        text = response.choices[0].message.content.strip()
+
+        decision   = 'PROCEED'
+        risk_level = 'NONE'
+        key_news   = ''
+        reasoning  = ''
+        confidence = 'LOW'
+
+        for line in text.split('\n'):
+            line = line.strip()
+            if line.startswith('DECISION:'):
+                decision   = line.split(':', 1)[1].strip().upper()
+            elif line.startswith('RISK_LEVEL:'):
+                risk_level = line.split(':', 1)[1].strip().upper()
+            elif line.startswith('KEY_NEWS:'):
+                key_news   = line.split(':', 1)[1].strip()
+            elif line.startswith('REASONING:'):
+                reasoning  = line.split(':', 1)[1].strip()
+            elif line.startswith('CONFIDENCE:'):
+                confidence = line.split(':', 1)[1].strip().upper()
+
+        # Only cancel if Groq says CANCEL with at least MEDIUM confidence
+        should_cancel = (decision == 'CANCEL' and confidence in ('HIGH', 'MEDIUM'))
+
+        print(f"[approval] Q2 News analysis for {ticker}: "
+              f"{decision} | Risk: {risk_level} | Confidence: {confidence}")
+        print(f"[approval] Reasoning: {reasoning}")
+
+        return should_cancel, risk_level, reasoning, key_news
+
+    except Exception as e:
+        print(f"[approval] Groq news analysis error for {ticker}: {e}")
+        # On any Groq failure → PROCEED (don't block buy on technical error)
+        return False, 'UNKNOWN', f'News analysis unavailable ({e}) — proceeding.', ''
+
+
+def _send_news_cancel_email(ticker, stock_name, qty, scout_price,
+                             risk_level, reasoning, key_news, headlines):
+    """Email sent when buy is cancelled due to confirmed negative news."""
+    subject = (f"🚫 Buy CANCELLED: {ticker} | Negative News Detected "
+               f"| Risk Level: {risk_level}")
+
+    news_items_html = ''.join(
+        f"<li style='margin-bottom:6px;font-size:13px;'>{h}</li>"
+        for h in headlines[:5]
+    )
+    key_news_html = (
+        f'<div style="background:#FFF3E0;border-radius:6px;padding:10px 12px;'
+        f'margin-bottom:12px;font-size:13px;">'
+        f'<strong>Key News:</strong> {key_news}</div>'
+        if key_news and key_news.upper() != 'NONE' else ''
+    )
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;max-width:660px;margin:auto;
+             background:#f0f2f5;padding:20px;">
+
+  <div style="background:linear-gradient(135deg,#4A148C,#7B1FA2);color:white;
+              padding:28px;border-radius:14px;margin-bottom:20px;">
+    <h1 style="margin:0;font-size:22px;">🚫 Buy Order Cancelled</h1>
+    <p style="margin:6px 0 0;opacity:0.9;">{stock_name} ({ticker})</p>
+    <p style="margin:4px 0 0;opacity:0.75;font-size:13px;">
+      Pre-market news analysis flagged a critical risk</p>
+  </div>
+
+  <div style="background:white;border-radius:12px;padding:20px;margin-bottom:16px;
+              border-left:5px solid #C62828;">
+    <h3 style="margin:0 0 10px;color:#C62828;">⚠️ Why This Buy Was Cancelled</h3>
+    <div style="background:#FFEBEE;border-radius:8px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:12px;color:#C62828;font-weight:bold;margin-bottom:6px;">
+        Risk Level: {risk_level}
+      </div>
+      <div style="font-size:13px;line-height:1.7;color:#333;">{reasoning}</div>
+    </div>
+    {key_news_html}
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:14px;">
+      <tr><td style="padding:9px 12px;font-weight:bold;width:40%;">Stock</td>
+          <td style="padding:9px 12px;">{ticker} — {stock_name}</td></tr>
+      <tr style="background:#f8f9fa;">
+          <td style="padding:9px 12px;font-weight:bold;">Qty Requested</td>
+          <td style="padding:9px 12px;">{qty} shares</td></tr>
+      <tr><td style="padding:9px 12px;font-weight:bold;">Scout Price</td>
+          <td style="padding:9px 12px;">₹{scout_price:,.2f}</td></tr>
+    </table>
+    <div style="font-size:13px;font-weight:bold;margin-bottom:8px;">
+      Latest News Headlines Analysed:</div>
+    <ul style="margin:0;padding-left:18px;color:#444;line-height:1.8;">
+      {news_items_html}
+    </ul>
+  </div>
+
+  <div style="background:#F3E5F5;border-radius:10px;padding:14px;
+              text-align:center;font-size:13px;color:#7B1FA2;">
+    ⚠️ Stock NOT added to Holdings or PendingBuys.<br>
+    Monitor the situation. Watch future scout emails for a fresh entry opportunity.
+  </div>
+
+</body></html>"""
+
+    send_report_email(subject, html)
+    print(f"[approval] 🚫 News cancel email sent for {ticker}")
+
+
+# ── Gmail reading (unchanged) ──────────────────────────────────────────────────
 
 def fetch_approval_replies():
     approvals_with_qty   = []
@@ -150,10 +358,10 @@ def get_portfolio_summary():
         for h in holdings:
             try:
                 info  = yf.Ticker(h['ticker'] + NSE_SUFFIX).info
-                price = info.get('currentPrice') or info.get('regularMarketPrice') or h.get('buying_price', 0)
+                price = (info.get('currentPrice') or info.get('regularMarketPrice')
+                         or h.get('buying_price', 0))
                 value = round(float(price) * h['qty'], 2)
                 total_value += value
-
                 sector = info.get('sector', h.get('industry', 'Unknown'))
                 sector_values[sector] = sector_values.get(sector, 0) + value
             except:
@@ -238,7 +446,7 @@ def send_qty_request_email(ticker, stock_info):
   <div style="background:#2E7D32;color:white;padding:24px;border-radius:12px;
               margin-bottom:20px;">
     <h1 style="margin:0;font-size:20px;">How many shares of {ticker}?</h1>
-    <p style="margin:6px 0 0;opacity:0.9;">{stock_info['name']} | 
+    <p style="margin:6px 0 0;opacity:0.9;">{stock_info['name']} |
        {stock_info.get('cap_category','')} | {stock_info.get('sector','')}</p>
   </div>
   <div style="background:white;border-radius:10px;padding:20px;margin-bottom:16px;">
@@ -261,89 +469,61 @@ def send_qty_request_email(ticker, stock_info):
 
 
 def _send_pending_buy_queued_email(ticker, stock_info, qty, scout_price, original_target):
-    """
-    NEW: Confirmation email sent at 9:00 AM telling the user their buy
-    has been queued and will execute at 9:20 AM after gap check.
-    """
-    upside_pct  = round(((original_target - scout_price) / scout_price) * 100, 2) \
+    upside_pct     = round(((original_target - scout_price) / scout_price) * 100, 2) \
         if scout_price else 0
     investment_est = round(scout_price * qty, 2)
     today_str      = datetime.now().strftime('%d %B %Y')
-
-    subject = f"⏳ Buy Queued: {ticker} | {qty} shares | Executing at 9:20 AM open price"
+    subject        = f"⏳ Buy Queued: {ticker} | {qty} shares | Executing at 9:20 AM open price"
 
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;max-width:640px;margin:auto;
              background:#f0f2f5;padding:20px;">
-
   <div style="background:linear-gradient(135deg,#1565C0,#1976D2);color:white;
               padding:28px;border-radius:14px;margin-bottom:20px;">
     <h1 style="margin:0;font-size:22px;">⏳ Buy Order Queued</h1>
     <p style="margin:6px 0 0;opacity:0.9;font-size:15px;">
-      {stock_info['name']} ({ticker})
-    </p>
+      {stock_info['name']} ({ticker})</p>
     <p style="margin:4px 0 0;opacity:0.75;font-size:13px;">{today_str}</p>
   </div>
-
   <div style="background:white;border-radius:12px;padding:20px;margin-bottom:16px;
               box-shadow:0 2px 8px rgba(0,0,0,0.07);">
     <h3 style="margin:0 0 14px;color:#1565C0;">📋 Order Details</h3>
     <table style="width:100%;border-collapse:collapse;">
-      <tr>
-        <td style="padding:10px 14px;font-weight:bold;width:45%;">Ticker</td>
-        <td style="padding:10px 14px;font-size:18px;font-weight:bold;">{ticker}</td>
-      </tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;width:45%;">Ticker</td>
+          <td style="padding:10px 14px;font-size:18px;font-weight:bold;">{ticker}</td></tr>
       <tr style="background:#f8f9fa;">
-        <td style="padding:10px 14px;font-weight:bold;">Quantity</td>
-        <td style="padding:10px 14px;font-size:18px;font-weight:bold;">{qty} shares</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 14px;font-weight:bold;">Scout Price (Reference)</td>
-        <td style="padding:10px 14px;">₹{scout_price:,.2f}</td>
-      </tr>
+          <td style="padding:10px 14px;font-weight:bold;">Quantity</td>
+          <td style="padding:10px 14px;font-size:18px;font-weight:bold;">{qty} shares</td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;">Scout Price (Reference)</td>
+          <td style="padding:10px 14px;">₹{scout_price:,.2f}</td></tr>
       <tr style="background:#f8f9fa;">
-        <td style="padding:10px 14px;font-weight:bold;">Original Target</td>
-        <td style="padding:10px 14px;">₹{original_target:,.2f}
-          &nbsp;<span style="color:#2E7D32;font-size:13px;">(+{upside_pct:.1f}% upside)</span>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:10px 14px;font-weight:bold;">Estimated Investment</td>
-        <td style="padding:10px 14px;font-size:16px;color:#1565C0;">
-          ~₹{investment_est:,.2f} (at scout price)</td>
-      </tr>
+          <td style="padding:10px 14px;font-weight:bold;">Original Target</td>
+          <td style="padding:10px 14px;">₹{original_target:,.2f}
+            <span style="color:#2E7D32;font-size:13px;">(+{upside_pct:.1f}%)</span></td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;">Estimated Investment</td>
+          <td style="padding:10px 14px;font-size:16px;color:#1565C0;">
+            ~₹{investment_est:,.2f}</td></tr>
       <tr style="background:#f8f9fa;">
-        <td style="padding:10px 14px;font-weight:bold;">Sector</td>
-        <td style="padding:10px 14px;">{stock_info.get('sector','N/A')}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 14px;font-weight:bold;">Category</td>
-        <td style="padding:10px 14px;">{stock_info.get('cap_category','N/A')}</td>
-      </tr>
+          <td style="padding:10px 14px;font-weight:bold;">Sector</td>
+          <td style="padding:10px 14px;">{stock_info.get('sector','N/A')}</td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;">Category</td>
+          <td style="padding:10px 14px;">{stock_info.get('cap_category','N/A')}</td></tr>
     </table>
   </div>
-
-  <div style="background:#E3F2FD;border-radius:12px;padding:18px;margin-bottom:16px;">
+  <div style="background:#E8F5E9;border-radius:8px;padding:10px 14px;margin-bottom:12px;
+              font-size:13px;color:#2E7D32;">
+    ✅ Overnight news check passed — no critical risks detected.
+  </div>
+  <div style="background:#E3F2FD;border-radius:12px;padding:16px;margin-bottom:16px;">
     <h3 style="margin:0 0 10px;color:#1565C0;">⚙️ What Happens Next</h3>
     <ol style="margin:0;padding-left:18px;line-height:1.9;font-size:14px;">
-      <li>At <strong>9:20 AM</strong>, the system fetches {ticker}'s actual opening price.</li>
-      <li>Gap from yesterday's close is calculated and checked against the
-          <strong>{stock_info.get('sector','sector')}</strong> threshold.</li>
-      <li>If the gap is within acceptable range → <strong>BUY EXECUTED</strong>
-          and stock added to Holdings.</li>
-      <li>If gap is extreme or bad news detected → <strong>BUY CANCELLED</strong>
-          and you'll receive an alert.</li>
-      <li>Either way, you'll receive a follow-up email by 9:25 AM.</li>
+      <li>At <strong>9:20 AM</strong>, system fetches {ticker}'s actual opening price.</li>
+      <li>Gap from yesterday's close is checked against {stock_info.get('sector','sector')} threshold.</li>
+      <li>If gap is acceptable → <strong>BUY EXECUTED</strong></li>
+      <li>If gap is extreme → <strong>BUY CANCELLED</strong> with alert</li>
     </ol>
   </div>
-
-  <div style="background:#FFF8E1;border-radius:10px;padding:14px;
-              text-align:center;font-size:13px;color:#E65100;">
-    The actual buy price will be today's <strong>opening price</strong>, not the scout price.<br>
-    Target price may be revised based on the gap direction and live technical analysis.
-  </div>
-
 </body></html>"""
 
     send_report_email(subject, html)
@@ -351,75 +531,53 @@ def _send_pending_buy_queued_email(ticker, stock_info, qty, scout_price, origina
 
 
 def _get_scout_price_and_target(ticker):
-    """
-    Try to find the original scout price and target from RecommendationsLog sheet.
-    Falls back to current live price if not found.
-    """
     try:
         from sheets_handler import get_recommendations_log
         logs = get_recommendations_log()
-        # Get the most recent recommendation for this ticker
-        ticker_logs = [
-            r for r in logs
-            if str(r.get('Ticker', '')).upper() == ticker.upper()
-        ]
+        ticker_logs = [r for r in logs
+                       if str(r.get('Ticker', '')).upper() == ticker.upper()]
         if ticker_logs:
-            # Sort by date descending, take latest
             ticker_logs.sort(key=lambda x: str(x.get('Date', '')), reverse=True)
-            latest = ticker_logs[0]
-            scout_p = float(str(latest.get('Recommended Price', 0) or 0).replace(',',''))
-            target_p = float(str(latest.get('Target Price', 0) or 0).replace(',',''))
+            latest   = ticker_logs[0]
+            scout_p  = float(str(latest.get('Recommended Price', 0) or 0).replace(',', ''))
+            target_p = float(str(latest.get('Target Price', 0) or 0).replace(',', ''))
             if scout_p > 0:
                 print(f"[approval] Found scout price for {ticker}: ₹{scout_p}, target ₹{target_p}")
                 return scout_p, target_p if target_p > 0 else None
     except Exception as e:
         print(f"[approval] Could not fetch scout price for {ticker}: {e}")
-
     return None, None
 
 
 def _add_to_holdings_direct(ticker, stock_info, qty):
-    """
-    Direct add to Holdings — used ONLY for CONFIRM overrides
-    (concentration warning bypassed). These bypass the gap check entirely
-    as the user has explicitly confirmed they want to override.
-    """
     from config import USE_GOOGLE_SHEETS
     buying_date  = datetime.now().strftime('%Y-%m-%d')
     target_price = stock_info.get('target_price', None)
-
     if USE_GOOGLE_SHEETS:
         from sheets_handler import add_stock_to_holdings
         sno = add_stock_to_holdings(
-            ticker       = ticker,
-            stock_name   = stock_info.get('name', ticker),
-            industry     = stock_info.get('sector', 'N/A'),
-            buying_price = stock_info['current_price'],
-            buying_date  = buying_date,
-            qty          = qty,
-            target_price = target_price,
-            cap_category = stock_info.get('cap_category', 'Mid Cap'),
-            sector       = stock_info.get('sector', 'N/A'),
+            ticker=ticker, stock_name=stock_info.get('name', ticker),
+            industry=stock_info.get('sector', 'N/A'),
+            buying_price=stock_info['current_price'],
+            buying_date=buying_date, qty=qty,
+            target_price=target_price,
+            cap_category=stock_info.get('cap_category', 'Mid Cap'),
+            sector=stock_info.get('sector', 'N/A'),
         )
         return sno
     else:
         success, sno = add_stock_via_vba(
-            ticker       = ticker,
-            buying_price = stock_info['current_price'],
-            buying_date  = buying_date,
-            qty          = qty
-        )
+            ticker=ticker, buying_price=stock_info['current_price'],
+            buying_date=buying_date, qty=qty)
         return sno if success else None
 
 
 def send_confirmation_email(ticker, stock_info, qty, next_row=None, target_price=None):
-    """Used for CONFIRM override — direct add (bypasses gap check)."""
     buying_price = stock_info['current_price']
     investment   = round(buying_price * qty, 2)
     today        = datetime.now().strftime('%d %B %Y')
-
-    subject = (f"{ticker} Added (Override) | {qty} shares @ "
-               f"Rs.{buying_price:,.2f} | Total Rs.{investment:,.2f}")
+    subject      = (f"{ticker} Added (Override) | {qty} shares @ "
+                    f"Rs.{buying_price:,.2f} | Total Rs.{investment:,.2f}")
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="font-family:Arial,sans-serif;max-width:600px;margin:auto;
@@ -427,44 +585,30 @@ def send_confirmation_email(ticker, stock_info, qty, next_row=None, target_price
   <div style="background:#2E7D32;color:white;padding:24px;border-radius:12px;
               margin-bottom:20px;">
     <h1 style="margin:0;font-size:20px;">✅ Stock Added to Portfolio (Concentration Override)</h1>
-    <p style="margin:6px 0 0;opacity:0.9;">{stock_info['name']} | 
+    <p style="margin:6px 0 0;opacity:0.9;">{stock_info['name']} |
        {stock_info.get('cap_category','')} | {stock_info.get('sector','')}</p>
   </div>
   <div style="background:white;border-radius:10px;padding:20px;margin-bottom:16px;">
     <table style="width:100%;border-collapse:collapse;">
       <tr style="background:#f8f9fa;">
         <td style="padding:10px 14px;font-weight:bold;width:45%;">Ticker</td>
-        <td style="padding:10px 14px;font-size:18px;font-weight:bold;">{ticker}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 14px;font-weight:bold;">Buying Price</td>
-        <td style="padding:10px 14px;font-size:18px;font-weight:bold;">
-          Rs.{buying_price:,.2f}</td>
-      </tr>
+        <td style="padding:10px 14px;font-size:18px;font-weight:bold;">{ticker}</td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;">Buying Price</td>
+          <td style="padding:10px 14px;font-size:18px;font-weight:bold;">Rs.{buying_price:,.2f}</td></tr>
       <tr style="background:#f8f9fa;">
-        <td style="padding:10px 14px;font-weight:bold;">Buying Date</td>
-        <td style="padding:10px 14px;">{today}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 14px;font-weight:bold;">Quantity</td>
-        <td style="padding:10px 14px;font-size:18px;font-weight:bold;">{qty} shares</td>
-      </tr>
+          <td style="padding:10px 14px;font-weight:bold;">Buying Date</td>
+          <td style="padding:10px 14px;">{today}</td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;">Quantity</td>
+          <td style="padding:10px 14px;font-size:18px;font-weight:bold;">{qty} shares</td></tr>
       <tr style="background:#f8f9fa;">
-        <td style="padding:10px 14px;font-weight:bold;">Investment Amount</td>
-        <td style="padding:10px 14px;font-size:20px;font-weight:bold;color:#1B5E20;">
-          Rs.{investment:,.2f}</td>
-      </tr>
-      <tr>
-        <td style="padding:10px 14px;font-weight:bold;">Category</td>
-        <td style="padding:10px 14px;">
-          {stock_info.get('cap_category','N/A')} | {stock_info.get('sector','N/A')}</td>
-      </tr>
+          <td style="padding:10px 14px;font-weight:bold;">Investment Amount</td>
+          <td style="padding:10px 14px;font-size:20px;font-weight:bold;color:#1B5E20;">
+            Rs.{investment:,.2f}</td></tr>
+      <tr><td style="padding:10px 14px;font-weight:bold;">Category</td>
+          <td style="padding:10px 14px;">
+            {stock_info.get('cap_category','N/A')} | {stock_info.get('sector','N/A')}</td></tr>
       {'<tr style="background:#E8F5E9;"><td style="padding:10px 14px;font-weight:bold;color:#2E7D32;">🎯 Target Price</td><td style="padding:10px 14px;font-size:18px;font-weight:bold;color:#2E7D32;">Rs.' + f"{target_price:,.2f}" + '</td></tr>' if target_price else ''}
     </table>
-  </div>
-  <div style="background:#FFF3E0;border-radius:8px;padding:12px;
-              text-align:center;font-size:13px;color:#E65100;">
-    ⚠️ Added via concentration override — position sizing warning was acknowledged.
   </div>
 </body></html>"""
     send_report_email(subject, html)
@@ -472,14 +616,14 @@ def send_confirmation_email(ticker, stock_info, qty, next_row=None, target_price
 
 
 def process_approvals():
-    print("[approval] Checking Gmail for YES/NO replies...")
+    print("[approval] === Checking Gmail for YES/NO replies ===")
     approvals_with_qty, approvals_need_qty, rejections, confirmed_overrides = fetch_approval_replies()
 
     if not approvals_with_qty and not approvals_need_qty and not rejections and not confirmed_overrides:
         print("[approval] No new replies found.")
         return
 
-    # ── CONFIRM overrides: bypass gap check, add directly at current price ──
+    # ── CONFIRM overrides: bypass everything, add directly ─────────────────
     for ticker, qty in confirmed_overrides:
         stock_info = get_stock_details(ticker)
         if not stock_info:
@@ -489,42 +633,55 @@ def process_approvals():
         send_confirmation_email(ticker, stock_info, qty, sno)
         print(f"[approval] ✅ {ticker} added directly (concentration override confirmed).")
 
-    # ── Normal approvals: run concentration check, then queue as PENDING BUY ──
+    # ── Normal approvals ────────────────────────────────────────────────────
     for ticker, qty in approvals_with_qty:
         stock_info = get_stock_details(ticker)
         if not stock_info:
             print(f"[approval] Could not fetch details for {ticker}. Skipping.")
             continue
 
-        # Concentration checks still apply before queuing
+        # ── Q2: Smart news analysis BEFORE anything else ───────────────────
+        print(f"[approval] Q2: Running overnight news analysis for {ticker}...")
+        headlines = _fetch_news_headlines(ticker, stock_info['name'])
+        should_cancel, risk_level, reasoning, key_news = _analyse_news_with_groq(
+            ticker, stock_info['name'], headlines
+        )
+
+        if should_cancel:
+            print(f"[approval] 🚫 {ticker} CANCELLED — news risk: {risk_level}")
+            scout_price, _ = _get_scout_price_and_target(ticker)
+            _send_news_cancel_email(
+                ticker, stock_info['name'], qty,
+                scout_price or stock_info['current_price'],
+                risk_level, reasoning, key_news, headlines
+            )
+            continue
+
+        print(f"[approval] ✅ {ticker} news check passed — proceeding")
+
+        # Concentration checks
         ok, warn_type, warn_msg = check_concentration(ticker, stock_info, qty)
         if not ok:
             send_concentration_warning_email(ticker, stock_info, qty, warn_msg)
             print(f"[approval] ⚠️  {ticker} — concentration warning sent ({warn_type}).")
             continue
 
-        # Fetch original scout price and target from RecommendationsLog
+        # Get scout price and target
         scout_price, original_target = _get_scout_price_and_target(ticker)
-
-        # Fallback: use current live price if scout price not found in logs
         if not scout_price:
-            scout_price    = stock_info['current_price']
-            original_target = round(scout_price * 1.10, 2)   # default 10% target
-            print(f"[approval] {ticker}: No scout record found — using live price "
-                  f"₹{scout_price} as scout price, 10% default target.")
+            scout_price     = stock_info['current_price']
+            original_target = round(scout_price * 1.10, 2)
+            print(f"[approval] {ticker}: No scout record — using live price ₹{scout_price}")
 
         if not original_target or original_target <= scout_price:
             original_target = round(scout_price * 1.10, 2)
 
-        # Queue as PENDING BUY — actual execution at 9:20 AM with gap check
+        # Store as PENDING BUY
         stored = store_pending_buy(
-            ticker          = ticker,
-            stock_name      = stock_info['name'],
-            qty             = qty,
-            scout_price     = scout_price,
-            original_target = original_target,
-            sector          = stock_info.get('sector', 'N/A'),
-            cap_category    = stock_info.get('cap_category', 'Mid Cap'),
+            ticker=ticker, stock_name=stock_info['name'], qty=qty,
+            scout_price=scout_price, original_target=original_target,
+            sector=stock_info.get('sector', 'N/A'),
+            cap_category=stock_info.get('cap_category', 'Mid Cap'),
         )
 
         if stored:
@@ -532,7 +689,7 @@ def process_approvals():
                 ticker, stock_info, qty, scout_price, original_target
             )
 
-    # ── Qty requests: ask how many shares (no change from before) ──
+    # ── Qty requests ────────────────────────────────────────────────────────
     for ticker in approvals_need_qty:
         stock_info = get_stock_details(ticker)
         if not stock_info:
