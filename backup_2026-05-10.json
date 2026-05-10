@@ -1,0 +1,3200 @@
+{
+  "exported_on": "2026-05-10",
+  "sheets": {
+    "Holdings": [
+      {
+        "Sr no": 1,
+        "Industry": "Oil & Gas",
+        "Ticker": "RELIANCE INDUSTRIES LIMITED (XNSE:RELIANCE)",
+        "Stock": "Reliance",
+        "Buying Price": 1210.6,
+        "Buying Date": "25-06-2023",
+        "Qty": 40,
+        "Investment amt": 48424,
+        "Current Share Price": 1435.2,
+        "Profit per share": 224.6,
+        "Total Profit": 8984,
+        "Growth": 18.55278374,
+        "Investment Days": 1050,
+        "Target": "",
+        "Cap Category": "",
+        "Pending Sell": "",
+        "Decision Price": "",
+        "Target Hit": "",
+        "Split Adjusted": ""
+      },
+      {
+        "Sr no": 2,
+        "Industry": "Banking Services",
+        "Ticker": "State Bank of India (XNSE:SBIN)",
+        "Stock": "Sbin",
+        "Buying Price": 744.15,
+        "Buying Date": "19-04-2024",
+        "Qty": 500,
+        "Investment amt": 372075,
+        "Current Share Price": 1019.3,
+        "Profit per share": 275.15,
+        "Total Profit": 137575,
+        "Growth": 36.97507223,
+        "Investment Days": 751,
+        "Target": "",
+        "Cap Category": "",
+        "Pending Sell": "YES",
+        "Decision Price": 1087.8,
+        "Target Hit": "NO",
+        "Split Adjusted": ""
+      },
+      {
+        "Sr no": 3,
+        "Industry": "Metals & Mining",
+        "Ticker": "TATA STEEL LIMITED (XNSE:TATASTEEL)",
+        "Stock": "Tatasteel",
+        "Buying Price": 139.8,
+        "Buying Date": "09-02-2024",
+        "Qty": 10,
+        "Investment amt": 1398,
+        "Current Share Price": 214.49,
+        "Profit per share": 74.69,
+        "Total Profit": 746.9,
+        "Growth": 53.42632332,
+        "Investment Days": 821,
+        "Target": "",
+        "Cap Category": "",
+        "Pending Sell": "",
+        "Decision Price": "",
+        "Target Hit": "",
+        "Split Adjusted": ""
+      },
+      {
+        "Sr no": 4,
+        "Industry": "Metals & Mining",
+        "Ticker": "TATA STEEL LIMITED (XNSE:TATASTEEL)",
+        "Stock": "Tatasteel",
+        "Buying Price": 139.1,
+        "Buying Date": "13-11-2024",
+        "Qty": 90,
+        "Investment amt": 12519,
+        "Current Share Price": 214.49,
+        "Profit per share": 75.39,
+        "Total Profit": 6785.1,
+        "Growth": 54.1984184,
+        "Investment Days": 543,
+        "Target": "",
+        "Cap Category": "",
+        "Pending Sell": "",
+        "Decision Price": "",
+        "Target Hit": "",
+        "Split Adjusted": ""
+      },
+      {
+        "Sr no": 5,
+        "Industry": "Electrical Utilities & IPPs",
+        "Ticker": "THE TATA POWER COMPANY LIMITED (XNSE:TATAPOWER)",
+        "Stock": "Tatapower",
+        "Buying Price": 389.15,
+        "Buying Date": "09-02-2024",
+        "Qty": 10,
+        "Investment amt": 3891.5,
+        "Current Share Price": 436,
+        "Profit per share": 46.85,
+        "Total Profit": 468.5,
+        "Growth": 12.03905949,
+        "Investment Days": 821,
+        "Target": "",
+        "Cap Category": "",
+        "Pending Sell": "",
+        "Decision Price": "",
+        "Target Hit": "",
+        "Split Adjusted": ""
+      },
+      {
+        "Sr no": 6,
+        "Industry": "Software & IT Services",
+        "Ticker": "LTIMINDTREE LIMITED (XNSE:LTM)",
+        "Stock": "Ltm",
+        "Buying Price": 4978.62,
+        "Buying Date": "25-08-2023",
+        "Qty": 50,
+        "Investment amt": 248931,
+        "Current Share Price": 4349.8,
+        "Profit per share": -628.82,
+        "Total Profit": -31441,
+        "Growth": -12.63040762,
+        "Investment Days": 989,
+        "Target": "",
+        "Cap Category": "",
+        "Pending Sell": "",
+        "Decision Price": "",
+        "Target Hit": "",
+        "Split Adjusted": ""
+      },
+      {
+        "Sr no": 7,
+        "Industry": "Automobiles & Auto Parts",
+        "Ticker": "MRF LIMITED (XNSE:MRF)",
+        "Stock": "Mrf",
+        "Buying Price": 121636.66,
+        "Buying Date": "04-06-2024",
+        "Qty": 10,
+        "Investment amt": 1216366.6,
+        "Current Share Price": 130425,
+        "Profit per share": 8788.34,
+        "Total Profit": 87883.4,
+        "Growth": 7.225075072,
+        "Investment Days": 705,
+        "Target": "",
+        "Cap Category": "",
+        "Pending Sell": "",
+        "Decision Price": "",
+        "Target Hit": "",
+        "Split Adjusted": ""
+      }
+    ],
+    "PnL": [
+      {
+        "Sr no": 1,
+        "Industry": "Food & Tobacco",
+        "Ticker": "ITC",
+        "Stock": "ITC",
+        "Buying Date": "04-06-2024",
+        "Selling Date": "2026-03-20",
+        "Buying Price": 416.75,
+        "Selling Price": 299.95,
+        "Qty": 1000,
+        "Investment amt": 416750,
+        "Profit per share": -116.8,
+        "Total Profit": -116800,
+        "Return %": -28.02639472,
+        "Investment Days": 654,
+        "Current Share Price": 307.45,
+        "Current return": 2.500416736,
+        "Time (in months)": 1
+      },
+      {
+        "Sr no": 2,
+        "Industry": "Automobiles & Auto Parts",
+        "Ticker": "TMPV",
+        "Stock": "TMPV",
+        "Buying Date": "17-04-2023",
+        "Selling Date": "2026-03-26",
+        "Buying Price": 530.83,
+        "Selling Price": 317.95,
+        "Qty": 100,
+        "Investment amt": 53083,
+        "Profit per share": -212.88,
+        "Total Profit": -21288,
+        "Return %": -40.10323456,
+        "Investment Days": 1074,
+        "Current Share Price": 355.45,
+        "Current return": 11.79430728,
+        "Time (in months)": 1
+      },
+      {
+        "Sr no": 3,
+        "Industry": "Food & Tobacco",
+        "Ticker": "AGRITECH",
+        "Stock": "AGRITECH",
+        "Buying Date": "01-02-2024",
+        "Selling Date": "2026-04-08",
+        "Buying Price": 220.9,
+        "Selling Price": 112.11,
+        "Qty": 200,
+        "Investment amt": 44180,
+        "Profit per share": -108.79,
+        "Total Profit": -21758,
+        "Return %": -49.24852875,
+        "Investment Days": 797,
+        "Current Share Price": 111.98,
+        "Current return": -0.1159575417,
+        "Time (in months)": 1
+      },
+      {
+        "Sr no": 4,
+        "Industry": "Construction & Engineering",
+        "Ticker": "LT",
+        "Stock": "LT",
+        "Buying Date": "11-05-2023",
+        "Selling Date": "2026-04-10",
+        "Buying Price": 2296.8,
+        "Selling Price": 3959.9,
+        "Qty": 10,
+        "Investment amt": 22968,
+        "Profit per share": 1663.1,
+        "Total Profit": 16631,
+        "Return %": 72.40943922,
+        "Investment Days": 1065,
+        "Current Share Price": 3974.5,
+        "Current return": 0.3686961792,
+        "Time (in months)": 1
+      }
+    ],
+    "SentimentHistory": [
+      {
+        "Date": "2026-04-13",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "LTM",
+        "Verdict": "NEUTRAL"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "LTM",
+        "Verdict": "NEUTRAL"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "LTM",
+        "Verdict": "NEUTRAL"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "LTM",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "MRF",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "RELIANCE",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-05",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "SBIN",
+        "Verdict": "NEUTRAL"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "SBIN",
+        "Verdict": "NEUTRAL"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATAPOWER",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "RELIANCE",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "SBIN",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATASTEEL",
+        "Verdict": "BULLISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "TATAPOWER",
+        "Verdict": "NEUTRAL"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "LTM",
+        "Verdict": "BEARISH"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "MRF",
+        "Verdict": "BEARISH"
+      }
+    ],
+    "RecommendationsLog": [
+      {
+        "Date": "2026-04-13",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 7548,
+        "Target Price": 8620.1,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "JSWENERGY",
+        "Recommended Price": 509.6,
+        "Target Price": 550.37,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4181,
+        "Target Price": 4572.63,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "MARICO",
+        "Recommended Price": 753.1,
+        "Target Price": 813.35,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 527.05,
+        "Target Price": 569.21,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "CRAFTSMAN",
+        "Recommended Price": 7398.5,
+        "Target Price": 9799.26,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "JSWENERGY",
+        "Recommended Price": 509.6,
+        "Target Price": 550.37,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6238,
+        "Target Price": 6737.04,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4181,
+        "Target Price": 4572.63,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-13",
+        "Ticker": "FEDERALBNK",
+        "Recommended Price": 288.2,
+        "Target Price": 350.96,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3590.2,
+        "Target Price": 3949.94,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6250,
+        "Target Price": 6750,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3427.3,
+        "Target Price": 3701.48,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "VOLTAMP",
+        "Recommended Price": 9530,
+        "Target Price": 11745.87,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4159.3,
+        "Target Price": 4492.04,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "MARICO",
+        "Recommended Price": 755.55,
+        "Target Price": 815.99,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "SBICARD",
+        "Recommended Price": 684.5,
+        "Target Price": 779.51,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-15",
+        "Ticker": "PGEL",
+        "Recommended Price": 537.9,
+        "Target Price": 607.13,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "CRAFTSMAN",
+        "Recommended Price": 7500,
+        "Target Price": 9564.12,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "DELHIVERY",
+        "Recommended Price": 459.95,
+        "Target Price": 496.75,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 559.15,
+        "Target Price": 603.88,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "PGEL",
+        "Recommended Price": 556,
+        "Target Price": 607.12,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "PRESTIGE",
+        "Recommended Price": 1338.5,
+        "Target Price": 1607.67,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6256,
+        "Target Price": 6756.48,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "AUBANK",
+        "Recommended Price": 983.95,
+        "Target Price": 1164.89,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "APOLLOHOSP",
+        "Recommended Price": 7553,
+        "Target Price": 8157.24,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3438.8,
+        "Target Price": 3926.87,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-16",
+        "Ticker": "JSWSTEEL",
+        "Recommended Price": 1214.9,
+        "Target Price": 1322.43,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "AUBANK",
+        "Recommended Price": 989.45,
+        "Target Price": 1164.9,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4179.4,
+        "Target Price": 4513.75,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "DELHIVERY",
+        "Recommended Price": 462.75,
+        "Target Price": 499.77,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3470.4,
+        "Target Price": 3926.85,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "ABCAPITAL",
+        "Recommended Price": 339.35,
+        "Target Price": 375.95,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "RBLBANK",
+        "Recommended Price": 315.65,
+        "Target Price": 340.9,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6294,
+        "Target Price": 6797.52,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "APOLLOHOSP",
+        "Recommended Price": 7685.5,
+        "Target Price": 8300.34,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3472,
+        "Target Price": 3926.85,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3566.4,
+        "Target Price": 3979.6,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4002.5,
+        "Target Price": 4322.7,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "RBLBANK",
+        "Recommended Price": 315.55,
+        "Target Price": 340.79,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8182.5,
+        "Target Price": 8837.1,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "YATHARTH",
+        "Recommended Price": 755.75,
+        "Target Price": 866.91,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6284,
+        "Target Price": 6786.72,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4002.5,
+        "Target Price": 4322.7,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "RBLBANK",
+        "Recommended Price": 315.55,
+        "Target Price": 340.79,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "VOLTAMP",
+        "Recommended Price": 10145,
+        "Target Price": 12169.75,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 569.6,
+        "Target Price": 615.17,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-17",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8182.5,
+        "Target Price": 8837.1,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4086.7,
+        "Target Price": 4413.64,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "RBLBANK",
+        "Recommended Price": 317.5,
+        "Target Price": 342.9,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4191.2,
+        "Target Price": 4526.5,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 556.6,
+        "Target Price": 601.13,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "AUBANK",
+        "Recommended Price": 997.65,
+        "Target Price": 1138.56,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3531.2,
+        "Target Price": 3960.16,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4086.7,
+        "Target Price": 4413.64,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8198.5,
+        "Target Price": 8976,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3489.1,
+        "Target Price": 4221.55,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-20",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6471.5,
+        "Target Price": 6989.22,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "YATHARTH",
+        "Recommended Price": 749.1,
+        "Target Price": 879.23,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "AUBANK",
+        "Recommended Price": 1032.45,
+        "Target Price": 1138.56,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3536.8,
+        "Target Price": 4221.55,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6433,
+        "Target Price": 6947.64,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "SBICARD",
+        "Recommended Price": 678.15,
+        "Target Price": 732.4,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3603,
+        "Target Price": 3960.16,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8241.5,
+        "Target Price": 8976.02,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 555.75,
+        "Target Price": 600.21,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "NYKAA",
+        "Recommended Price": 264,
+        "Target Price": 289.73,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "DELHIVERY",
+        "Recommended Price": 474.6,
+        "Target Price": 512.57,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4172.9,
+        "Target Price": 4506.73,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "VOLTAMP",
+        "Recommended Price": 10524.5,
+        "Target Price": 13654.31,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3610.2,
+        "Target Price": 3993.68,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6373.5,
+        "Target Price": 6883.38,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-21",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3472.8,
+        "Target Price": 4379.92,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "YATHARTH",
+        "Recommended Price": 752.85,
+        "Target Price": 890.81,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "CRAFTSMAN",
+        "Recommended Price": 7725.5,
+        "Target Price": 9517.58,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1416.4,
+        "Target Price": 1542.25,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "SBILIFE",
+        "Recommended Price": 1883.7,
+        "Target Price": 2034.4,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4237.3,
+        "Target Price": 4576.28,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "RBLBANK",
+        "Recommended Price": 322.1,
+        "Target Price": 347.87,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6443,
+        "Target Price": 6958.44,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1418.5,
+        "Target Price": 1542.25,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3490,
+        "Target Price": 4379.93,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4288.8,
+        "Target Price": 4631.9,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "VOLTAMP",
+        "Recommended Price": 11051,
+        "Target Price": 14519.1,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "YATHARTH",
+        "Recommended Price": 740.85,
+        "Target Price": 901.01,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 556.95,
+        "Target Price": 601.51,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-22",
+        "Ticker": "APOLLOHOSP",
+        "Recommended Price": 7662,
+        "Target Price": 8274.96,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4237.3,
+        "Target Price": 4576.28,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "RBLBANK",
+        "Recommended Price": 314.95,
+        "Target Price": 340.15,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6340,
+        "Target Price": 6847.2,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "NYKAA",
+        "Recommended Price": 264.16,
+        "Target Price": 298.1,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "AUBANK",
+        "Recommended Price": 1053,
+        "Target Price": 1179.57,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 550.95,
+        "Target Price": 595.03,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "NYKAA",
+        "Recommended Price": 264.15,
+        "Target Price": 298.1,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "YATHARTH",
+        "Recommended Price": 720.85,
+        "Target Price": 948.43,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "AUBANK",
+        "Recommended Price": 1052.5,
+        "Target Price": 1179.57,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1401.5,
+        "Target Price": 1647.17,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 7963.5,
+        "Target Price": 9094.33,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 549.45,
+        "Target Price": 593.41,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "TRENT",
+        "Recommended Price": 4251.4,
+        "Target Price": 5286.84,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1410.5,
+        "Target Price": 1739.78,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-23",
+        "Ticker": "PERSISTENT",
+        "Recommended Price": 5065.2,
+        "Target Price": 6120.16,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "RBLBANK",
+        "Recommended Price": 311.15,
+        "Target Price": 336.04,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TRENT",
+        "Recommended Price": 4220,
+        "Target Price": 5286.89,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "PERSISTENT",
+        "Recommended Price": 4907.4,
+        "Target Price": 6120.17,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4110.1,
+        "Target Price": 4438.91,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "JSWSTEEL",
+        "Recommended Price": 1249.5,
+        "Target Price": 1349.46,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "NYKAA",
+        "Recommended Price": 260.8,
+        "Target Price": 297.54,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1415.3,
+        "Target Price": 1739.78,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4108.5,
+        "Target Price": 4437.18,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "ABCAPITAL",
+        "Recommended Price": 340.45,
+        "Target Price": 367.69,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "SYRMA",
+        "Recommended Price": 983.5,
+        "Target Price": 1111.04,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3493.5,
+        "Target Price": 3912.72,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "SYRMA",
+        "Recommended Price": 969.6,
+        "Target Price": 1196.99,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1421.3,
+        "Target Price": 1831.14,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4117.2,
+        "Target Price": 4446.58,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-24",
+        "Ticker": "JSWSTEEL",
+        "Recommended Price": 1255.7,
+        "Target Price": 1356.16,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8077,
+        "Target Price": 9073.89,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4405.8,
+        "Target Price": 4758.26,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "ABCAPITAL",
+        "Recommended Price": 341.15,
+        "Target Price": 368.44,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "WAAREEENER",
+        "Recommended Price": 3352.1,
+        "Target Price": 4415.46,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "SJVN",
+        "Recommended Price": 80.44,
+        "Target Price": 87.29,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3506,
+        "Target Price": 3912.73,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8090,
+        "Target Price": 9073.89,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "CRAFTSMAN",
+        "Recommended Price": 7580.5,
+        "Target Price": 9536.53,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1426.4,
+        "Target Price": 1831.14,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "SJVN",
+        "Recommended Price": 80.49,
+        "Target Price": 87.29,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "YATHARTH",
+        "Recommended Price": 750,
+        "Target Price": 869.13,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "M&MFIN",
+        "Recommended Price": 317.1,
+        "Target Price": 400.8,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "CRAFTSMAN",
+        "Recommended Price": 7709,
+        "Target Price": 9469.13,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "DELHIVERY",
+        "Recommended Price": 466.2,
+        "Target Price": 503.5,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-27",
+        "Ticker": "NAVINFLUOR",
+        "Recommended Price": 6548.5,
+        "Target Price": 7072.38,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "TRENT",
+        "Recommended Price": 4230.1,
+        "Target Price": 5341.3,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "HINDCOPPER",
+        "Recommended Price": 562.6,
+        "Target Price": 607.61,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1438,
+        "Target Price": 1879.11,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "JSWENERGY",
+        "Recommended Price": 580.85,
+        "Target Price": 627.32,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8182.5,
+        "Target Price": 9100.41,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3486.9,
+        "Target Price": 3806.5,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4311.5,
+        "Target Price": 4656.42,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "PERSISTENT",
+        "Recommended Price": 4784.3,
+        "Target Price": 6398.61,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "JSWENERGY",
+        "Recommended Price": 582.55,
+        "Target Price": 629.15,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4283.3,
+        "Target Price": 4841.6,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "AUBANK",
+        "Recommended Price": 1022.8,
+        "Target Price": 1243.9,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "SYRMA",
+        "Recommended Price": 971.55,
+        "Target Price": 1241.13,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1440,
+        "Target Price": 1897.49,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-28",
+        "Ticker": "APOLLOHOSP",
+        "Recommended Price": 7753,
+        "Target Price": 8373.24,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "MUTHOOTFIN",
+        "Recommended Price": 3483.8,
+        "Target Price": 3762.5,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "COALINDIA",
+        "Recommended Price": 482.45,
+        "Target Price": 521.05,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TORNTPHARM",
+        "Recommended Price": 4268.9,
+        "Target Price": 4610.41,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "NYKAA",
+        "Recommended Price": 268.84,
+        "Target Price": 308.91,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "MARICO",
+        "Recommended Price": 786.5,
+        "Target Price": 849.42,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "TRENT",
+        "Recommended Price": 4281.9,
+        "Target Price": 5324.42,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8204.5,
+        "Target Price": 9233.46,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "M&MFIN",
+        "Recommended Price": 320.55,
+        "Target Price": 420.05,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "COALINDIA",
+        "Recommended Price": 481.95,
+        "Target Price": 520.51,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "JSWENERGY",
+        "Recommended Price": 569.5,
+        "Target Price": 615.06,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4326.8,
+        "Target Price": 5033.83,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "VOLTAMP",
+        "Recommended Price": 11793,
+        "Target Price": 15631.58,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "NESTLEIND",
+        "Recommended Price": 1465.6,
+        "Target Price": 1917.17,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "PERSISTENT",
+        "Recommended Price": 4805.8,
+        "Target Price": 6329.93,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-29",
+        "Ticker": "ADANIGREEN",
+        "Recommended Price": 1244.8,
+        "Target Price": 1612.43,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-04-30",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4155.4,
+        "Target Price": 5033.82,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "SCHAEFFLER",
+        "Recommended Price": 4174.2,
+        "Target Price": 5107.53,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8344.5,
+        "Target Price": 9404.09,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-04",
+        "Ticker": "CRAFTSMAN",
+        "Recommended Price": 7679,
+        "Target Price": 9596.02,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "VOLTAMP",
+        "Recommended Price": 10028,
+        "Target Price": 17186.61,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "KEI",
+        "Recommended Price": 5215.1,
+        "Target Price": 5632.31,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "RBLBANK",
+        "Recommended Price": 335.85,
+        "Target Price": 413.47,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-06",
+        "Ticker": "POLYCAB",
+        "Recommended Price": 8415.5,
+        "Target Price": 9669.96,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "NYKAA",
+        "Recommended Price": 271.3,
+        "Target Price": 315.49,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "BAJAJ-AUTO",
+        "Recommended Price": 10671.5,
+        "Target Price": 12349.61,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "STARHEALTH",
+        "Recommended Price": 522.45,
+        "Target Price": 694.8,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "NYKAA",
+        "Recommended Price": 271.25,
+        "Target Price": 315.49,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "NYKAA",
+        "Recommended Price": 269.85,
+        "Target Price": 324.45,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "STARHEALTH",
+        "Recommended Price": 517.45,
+        "Target Price": 670.63,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-07",
+        "Ticker": "COALINDIA",
+        "Recommended Price": 466.65,
+        "Target Price": 574.42,
+        "Status": "OPEN"
+      },
+      {
+        "Date": "2026-05-08",
+        "Ticker": "STARHEALTH",
+        "Recommended Price": 520.15,
+        "Target Price": 679.23,
+        "Status": "OPEN"
+      }
+    ]
+  }
+}
