@@ -139,7 +139,16 @@ def execute_pending_sells():
 def run_analysis(test_mode=False, morning_job=False):
 
     if morning_job:
+        # Part 1: Execute pending sells at open price
         execute_pending_sells()
+
+        # Part 2: Execute pending buys with gap decision tree
+        try:
+            from pending_buys_handler import execute_pending_buys
+            execute_pending_buys()
+        except Exception as e:
+            print(f"[main] Pending buys execution error: {e}")
+
         return []
 
     print("\n" + "="*60)
@@ -343,7 +352,10 @@ def run_analysis(test_mode=False, morning_job=False):
             send_scout_email(candidates)
             print(f"   -> Scout email sent with {len(candidates)} candidates.")
         else:
-            print("   -> No strong candidates found today.")
+            # No longer fails silently — sends notification email
+            from stock_scout import send_no_picks_email
+            send_no_picks_email()
+            print("   -> No strong candidates found today. Notification email sent.")
         print()
 
     # Save dashboard cache
