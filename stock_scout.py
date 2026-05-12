@@ -787,6 +787,45 @@ def send_scout_email(candidates):
     send_report_email(subject, html)
     print(f"[scout] Scout email sent with {len(candidates)} candidates.")
 
+def send_no_picks_email():
+    """
+    FIX 1: Sends a notification email when no stocks pass the quality filters.
+    Replaces the previous silent failure so you always know the scout ran.
+    """
+    date_str = datetime.now().strftime('%d %B %Y')
+    subject  = f"📭 No Stock Picks Today | {date_str} | Market Quality Poor"
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#f5f5f5;padding:20px;">
+  <div style="background:linear-gradient(135deg,#37474F,#546E7A);color:white;
+              padding:24px;border-radius:12px;margin-bottom:20px;">
+    <h1 style="margin:0;font-size:20px;">📭 No Growth Picks Today</h1>
+    <p style="margin:6px 0 0;opacity:0.85;">{date_str}</p>
+  </div>
+  <div style="background:white;border-radius:10px;padding:20px;
+              box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+    <p style="font-size:14px;color:#333;line-height:1.7;margin:0 0 14px;">
+      The scout ran today and scanned 60 stocks from the NSE universe but
+      <strong>no stocks passed all quality filters</strong>.
+    </p>
+    <p style="font-size:13px;color:#555;line-height:1.7;margin:0 0 14px;">
+      This typically happens on broad market down days when:
+    </p>
+    <ul style="font-size:13px;color:#555;line-height:1.9;padding-left:18px;margin:0 0 16px;">
+      <li>Most sector indices are below their 20-day SMA (sector downtrend filter)</li>
+      <li>Most stocks are below their EMA50 (momentum filter)</li>
+      <li>RSI across the board is overbought or ADX is weak</li>
+    </ul>
+    <div style="background:#E8F5E9;border-left:4px solid #2E7D32;padding:12px 16px;
+                border-radius:4px;font-size:13px;color:#2E7D32;">
+      ✅ System is working correctly. No action needed from you today.<br>
+      Tomorrow's scan will pick fresh candidates when market conditions improve.
+    </div>
+  </div>
+</body></html>"""
+    send_report_email(subject, html)
+    print("[scout] No-picks notification email sent.")
+
 
 if __name__ == "__main__":
     candidates = find_growth_stocks(top_n=5)
