@@ -47,7 +47,7 @@ jobs:
           EMAIL_PASSWORD          = os.environ.get("EMAIL_PASSWORD", "")
           EMAIL_RECEIVER          = os.environ.get("EMAIL_RECEIVER", "")
           GROQ_API_KEY            = os.environ.get("GROQ_API_KEY", "")
-          GROQ_MODEL              = "llama-3.3-70b-versatile"
+          GROQ_MODEL              = "qwen/qwen3.6-27b"
           GEMINI_API_KEY          = ""
           ALPHA_VANTAGE_KEY       = ""
           GOOGLE_SHEET_ID         = os.environ.get("GOOGLE_SHEET_ID", "")
