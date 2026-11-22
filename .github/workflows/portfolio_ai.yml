@@ -169,15 +169,28 @@ jobs:
           GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: python sheets_handler.py --backup
 
-      - name: Commit backup to repo (Flaw 5.3)
+      - name: Commit backup to repo (keep only the latest)
         if: steps.detect.outputs.job == 'backup'
         run: |
           git config user.name "Portfolio AI Bot"
           git config user.email "bot@portfolio-ai.com"
-          git add backup_*.json || true
-          git diff --staged --quiet || git commit -m "Weekly backup $(date '+%Y-%m-%d')"
-          git push || true
 
+          KEEP=1   # how many backup files to keep in the repo
+          LATEST=$(ls backup_*.json 2>/dev/null | sort | tail -n 1)
+
+          # Only prune if a real backup exists (file present and not tiny)
+          if [ -n "$LATEST" ] && [ "$(stat -c%s "$LATEST")" -gt 1000 ]; then
+            git add "$LATEST"
+            # delete every backup except the newest $KEEP
+            ls backup_*.json | sort | head -n -$KEEP | while read -r old; do
+              git rm -f --quiet "$old" || true
+            done
+          else
+            echo "No valid new backup found - nothing pruned."
+          fi
+
+          git diff --staged --quiet || git commit -m "Weekly backup $(date '+%Y-%m-%d') (older backups pruned)"
+          git push || true
       # ── Deploy dashboard to GitHub Pages ───────────────────────────────────
       - name: Deploy dashboard
         if: steps.detect.outputs.job == 'analysis' || steps.detect.outputs.job == 'monthly_and_analysis'
