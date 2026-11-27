@@ -1,27 +1,30 @@
 """
 news_sentiment.py
-Upgraded Groq prompting with:
-  - FLAW 2.1: 5-day sentiment memory fed into Groq prompt for consistency
+Groq-powered sentiment for each holding:
+  - FLAW 2.1: 5-day sentiment memory fed into the prompt for consistency
   - FLAW 2.2: Tiered news fetching (full article -> RSS snippet -> headline only)
-  - FLAW 2.3: Earnings calendar check — warns if earnings within 3 trading days
+  - FLAW 2.3: Earnings calendar check — warns if earnings within 5 days
+  - RELIABILITY: all Groq calls go through llm_client (model fallback, pacing,
+                 structured JSON). A failed call is returned with
+                 analysis_failed=True instead of a fake NEUTRAL verdict.
 """
 
-from groq import Groq
-from config import GROQ_API_KEY, GROQ_MODEL
+import json
+import re
 import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
 import requests
 from datetime import datetime, date
 
-client = Groq(api_key=GROQ_API_KEY)
+from llm_client import ask_json
 
 
 # ── FLAW 2.3: Earnings Calendar Check ────────────────────────────────────────
 
 def check_earnings_alert(ticker_yf):
     """
-    Returns earnings alert string if earnings are within 3 trading days.
+    Returns earnings alert string if earnings are within 5 days.
     Returns None if no upcoming earnings detected.
     """
     try:
@@ -66,7 +69,6 @@ def _fetch_full_article(url):
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
         resp = requests.get(url, headers=headers, timeout=8)
         if resp.status_code == 200:
-            import re
             text  = re.sub(r'<[^>]+>', ' ', resp.text)
             text  = re.sub(r'\s+', ' ', text).strip()
             words = text.split()
@@ -114,7 +116,6 @@ def fetch_news_headlines(stock_name, max_articles=5):
 
             # Tier 2: RSS description snippet
             if desc is not None and desc.text:
-                import re
                 clean_desc = re.sub(r'<[^>]+>', ' ', desc.text).strip()
                 if len(clean_desc) > 80:
                     article['content']    = clean_desc[:600]
@@ -140,7 +141,7 @@ def fetch_news_headlines(stock_name, max_articles=5):
 # ── FLAW 2.1: Build Memory Context ───────────────────────────────────────────
 
 def _build_memory_context(sentiment_history):
-    """Format last 5 verdicts for Groq prompt"""
+    """Format last 5 verdicts for the prompt"""
     if not sentiment_history:
         return "No previous verdict history available."
     lines = []
@@ -149,10 +150,68 @@ def _build_memory_context(sentiment_history):
     return "\n".join(lines)
 
 
+# ── Structured output definition ─────────────────────────────────────────────
+
+SENTIMENT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "news_sentiment":    {"type": "string", "enum": ["POSITIVE", "NEGATIVE", "NEUTRAL"]},
+        "overall_sentiment": {"type": "string", "enum": ["BULLISH", "BEARISH", "NEUTRAL"]},
+        "ai_decision":       {"type": "string", "enum": ["SELL", "HOLD", "WATCH"]},
+        "confidence":        {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+        "sentiment_flip":    {"type": "string", "enum": ["YES", "NO"]},
+        "recommendation":    {"type": "string"},
+        "risk_factors":      {"type": "string"},
+        "target_price":      {"type": "number"},
+        "stop_loss":         {"type": "number"},
+    },
+    "required": ["news_sentiment", "overall_sentiment", "ai_decision", "confidence",
+                 "sentiment_flip", "recommendation", "risk_factors",
+                 "target_price", "stop_loss"],
+    "additionalProperties": False,
+}
+
+_ENUMS = {k: v["enum"] for k, v in SENTIMENT_SCHEMA["properties"].items() if "enum" in v}
+
+
+def _valid_sentiment(d):
+    """Reject replies whose enum fields are missing or outside the allowed values."""
+    if not isinstance(d, dict):
+        return False
+    for key, allowed in _ENUMS.items():
+        if str(d.get(key, '')).strip().upper() not in allowed:
+            return False
+    return True
+
+
+def _to_price(value):
+    try:
+        v = float(value)
+        return v if v > 0 else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _failed_result(reason):
+    return {
+        'news_sentiment':    'NEUTRAL',
+        'overall_sentiment': 'NEUTRAL',
+        'ai_decision':       'HOLD',
+        'ai_confidence':     'LOW',
+        'sentiment_flip':    'NO',
+        'recommendation':    f'Analysis failed: {reason}',
+        'risk_factors':      'N/A',
+        'ai_target_price':   None,
+        'ai_stop_loss':      None,
+        'analysis_failed':   True,     # callers must NOT store this as a real verdict
+        'llm_model':         '',
+    }
+
+
 # ── MAIN GROQ ANALYSIS ────────────────────────────────────────────────────────
 
 def analyze_sentiment_with_groq(stock_name, ticker, articles, technical_data, stock_data, sentiment_history=None):
-    # Build news text with tier context for Groq
+    # Build news text with tier context
     if not articles:
         news_text = "No recent news found."
     else:
@@ -211,8 +270,8 @@ PORTFOLIO SITUATION:
 
 PREVIOUS VERDICTS (last 5 trading days — use for consistency):
 {memory_context}
-Important: If your verdict today differs from the recent trend, explicitly explain why in RECOMMENDATION.
-If sentiment flips from BULLISH to BEARISH with no major price move or news catalyst, flag SENTIMENT_FLIP as YES.
+Important: If your verdict today differs from the recent trend, explicitly explain why in the recommendation field.
+If sentiment flips from BULLISH to BEARISH with no major price move or news catalyst, set sentiment_flip to YES.
 
 TRADING RULES (follow strictly):
 - SELL immediately if: Loss >= 20% AND overall sentiment is BEARISH
@@ -235,81 +294,39 @@ Technical Notes:
 RECENT NEWS (tiered by confidence):
 {news_text}
 
-Respond in EXACTLY this format, no extra text:
-NEWS_SENTIMENT: [POSITIVE/NEGATIVE/NEUTRAL]
-OVERALL_SENTIMENT: [BULLISH/BEARISH/NEUTRAL]
-AI_DECISION: [SELL/HOLD/WATCH]
-CONFIDENCE: [HIGH/MEDIUM/LOW]
-SENTIMENT_FLIP: [YES/NO]
-RECOMMENDATION: [2-3 sentence reasoning. If verdict changed from recent trend, explain why.]
-RISK_FACTORS: [1-2 key risks]
-TARGET_PRICE: [realistic target price in Rs. Just a number like 1850.00]
-STOP_LOSS: [stop loss price in Rs. Just a number like 1200.00]"""
+Respond with ONE JSON object only, with these fields:
+- news_sentiment: POSITIVE, NEGATIVE or NEUTRAL
+- overall_sentiment: BULLISH, BEARISH or NEUTRAL
+- ai_decision: SELL, HOLD or WATCH
+- confidence: HIGH, MEDIUM or LOW
+- sentiment_flip: YES or NO
+- recommendation: 2-3 sentence reasoning (explain why if the verdict changed from the recent trend)
+- risk_factors: 1-2 key risks
+- target_price: realistic target price in Rs. as a number (for example 1850.00)
+- stop_loss: stop loss price in Rs. as a number (for example 1200.00)"""
 
-    try:
-        response = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=400,
-            temperature=0.2
-        )
-        text = response.choices[0].message.content.strip()
+    res = ask_json(prompt, SENTIMENT_SCHEMA, name='stock_sentiment',
+                   validate=_valid_sentiment, max_tokens=1200, label=f"sentiment {ticker}")
 
-        result = {
-            'news_sentiment':    'NEUTRAL',
-            'overall_sentiment': 'NEUTRAL',
-            'ai_decision':       'HOLD',
-            'ai_confidence':     'LOW',
-            'sentiment_flip':    'NO',
-            'recommendation':    'No recommendation generated.',
-            'risk_factors':      'N/A',
-            'ai_target_price':   None,
-            'ai_stop_loss':      None,
-            'raw_response':      text
-        }
+    if not res.ok:
+        print(f"[news_sentiment] Groq FAILED for {stock_name}: {res.error}")
+        return _failed_result(res.error[:200])
 
-        for line in text.split('\n'):
-            line = line.strip()
-            if line.startswith('NEWS_SENTIMENT:'):
-                result['news_sentiment'] = line.split(':', 1)[1].strip()
-            elif line.startswith('OVERALL_SENTIMENT:'):
-                result['overall_sentiment'] = line.split(':', 1)[1].strip()
-            elif line.startswith('AI_DECISION:'):
-                result['ai_decision'] = line.split(':', 1)[1].strip()
-            elif line.startswith('CONFIDENCE:'):
-                result['ai_confidence'] = line.split(':', 1)[1].strip()
-            elif line.startswith('SENTIMENT_FLIP:'):
-                result['sentiment_flip'] = line.split(':', 1)[1].strip()
-            elif line.startswith('RECOMMENDATION:'):
-                result['recommendation'] = line.split(':', 1)[1].strip()
-            elif line.startswith('RISK_FACTORS:'):
-                result['risk_factors'] = line.split(':', 1)[1].strip()
-            elif line.startswith('TARGET_PRICE:'):
-                try:
-                    result['ai_target_price'] = float(line.split(':', 1)[1].strip())
-                except:
-                    pass
-            elif line.startswith('STOP_LOSS:'):
-                try:
-                    result['ai_stop_loss'] = float(line.split(':', 1)[1].strip())
-                except:
-                    pass
-
-        return result
-
-    except Exception as e:
-        print(f"[news_sentiment] Groq error for {stock_name}: {e}")
-        return {
-            'news_sentiment':    'NEUTRAL',
-            'overall_sentiment': 'NEUTRAL',
-            'ai_decision':       'HOLD',
-            'ai_confidence':     'LOW',
-            'sentiment_flip':    'NO',
-            'recommendation':    f'Analysis failed: {e}',
-            'risk_factors':      'N/A',
-            'ai_target_price':   None,
-            'ai_stop_loss':      None,
-        }
+    d = res.data
+    return {
+        'news_sentiment':    str(d['news_sentiment']).strip().upper(),
+        'overall_sentiment': str(d['overall_sentiment']).strip().upper(),
+        'ai_decision':       str(d['ai_decision']).strip().upper(),
+        'ai_confidence':     str(d['confidence']).strip().upper(),
+        'sentiment_flip':    str(d['sentiment_flip']).strip().upper(),
+        'recommendation':    str(d.get('recommendation') or 'No recommendation generated.').strip(),
+        'risk_factors':      str(d.get('risk_factors') or 'N/A').strip(),
+        'ai_target_price':   _to_price(d.get('target_price')),
+        'ai_stop_loss':      _to_price(d.get('stop_loss')),
+        'raw_response':      json.dumps(d),
+        'analysis_failed':   False,
+        'llm_model':         res.model,
+    }
 
 
 def get_full_sentiment(stock_name, ticker, technical_data, stock_data, sentiment_history=None):
