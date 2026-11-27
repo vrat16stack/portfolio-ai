@@ -14,6 +14,16 @@ Pipeline:
  10. Scout new growth stocks (market-dependent)
  11. Weekly/Monthly summary (market-independent — runs even on holidays)
 
+Reliability upgrade (this version):
+  * A failed AI verdict (analysis_failed) is NEVER written to SentimentHistory, so it can no
+    longer reset the consecutive-BEARISH streak.
+  * flag_pending_sell is retried and its False return is treated as a failure (immediate-sell
+    fallback + health issue). The Holdings sheet columns it needs are checked at start-up.
+  * Morning job: robust open-price lookup, and a loud alert email if a pending sell is not executed.
+  * Scout: recommendations are logged ONLY when the scout email can actually go out (after the
+    15:30 IST gate), so the accuracy stats never include picks you were never shown.
+  * Health email at the end of the run when anything went wrong (see HEALTH_EMAIL_ALWAYS).
+
 Usage:
   python main.py              # Run immediately (3:45 PM job)
   python main.py --morning    # Morning job (9:20 AM) — execute pending sells at open price
@@ -23,6 +33,8 @@ Usage:
 
 import sys
 import json
+import time
+import html as _html
 from datetime import datetime, date
 
 from config import USE_GOOGLE_SHEETS
@@ -33,10 +45,11 @@ from decision_engine import process_all_holdings
 from report_generator import generate_html_report, generate_subject_line
 from email_handler import send_report_email
 from pnl_updater import process_sell
-from stock_scout import find_growth_stocks, send_scout_email
+from stock_scout import find_growth_stocks, send_scout_email, send_no_picks_email, is_after_market_close
 from weekly_monthly_summary import should_send_weekly, should_send_monthly, send_weekly_summary, send_monthly_summary
 from fear_greed import get_fear_greed
 from approval_checker import process_approvals
+from llm_client import get_stats as llm_get_stats, reset_stats as llm_reset_stats
 
 if USE_GOOGLE_SHEETS:
     from sheets_handler import (
@@ -49,6 +62,98 @@ if USE_GOOGLE_SHEETS:
 else:
     from excel_reader import read_holdings
     print("[main] Using Excel as data source")
+
+
+# ── HEALTH TRACKING ───────────────────────────────────────────────────────────
+
+HEALTH = {'issues': [], 'failed_verdicts': []}
+HEALTH_EMAIL_ALWAYS = False     # True = send the health email every run, even when all is well
+REQUIRED_SELL_COLUMNS = ['Pending Sell', 'Decision Price', 'Target Hit']
+
+
+def _note_issue(message):
+    print(f"[health] {message}")
+    HEALTH['issues'].append(message)
+
+
+def _send_alert(subject, lines):
+    """Immediate alert email. Never raises."""
+    try:
+        items = ''.join(f"<li style='margin-bottom:6px;'>{_html.escape(str(l))}</li>" for l in lines)
+        body = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;max-width:640px;margin:auto;background:#f5f5f5;padding:20px;">
+  <div style="background:#B71C1C;color:white;padding:20px;border-radius:12px;margin-bottom:16px;">
+    <h2 style="margin:0;">{_html.escape(subject)}</h2>
+    <p style="margin:6px 0 0;opacity:0.85;font-size:13px;">{datetime.now().strftime('%d %B %Y %H:%M')}</p>
+  </div>
+  <div style="background:white;border-radius:10px;padding:18px;font-size:14px;line-height:1.6;">
+    <ul style="margin:0;padding-left:18px;">{items}</ul>
+  </div>
+</body></html>"""
+        send_report_email(subject, body)
+    except Exception as e:
+        print(f"[main] Could not send alert email '{subject}': {e}")
+
+
+def _send_health_email(stats, issues, failed_verdicts):
+    """Sent only when something needs attention (or HEALTH_EMAIL_ALWAYS is True)."""
+    try:
+        problems = list(issues)
+        if stats.get('failed'):
+            problems.append(f"{stats['failed']} Groq call(s) failed on every model.")
+        if stats.get('fallbacks'):
+            problems.append(f"{stats['fallbacks']} call(s) were answered by a FALLBACK model "
+                            f"(primary model failed) — check the Groq model list.")
+        if failed_verdicts:
+            problems.append(f"{len(failed_verdicts)} stock verdict(s) FAILED and were not stored: "
+                            + '; '.join(v[:90] for v in failed_verdicts))
+        if not problems and not HEALTH_EMAIL_ALWAYS:
+            print("[health] All good — no health email needed.")
+            return
+        ok = not problems
+        rows = ''.join(f"<li style='margin-bottom:6px;'>{_html.escape(p)}</li>" for p in problems) \
+            or "<li>No issues.</li>"
+        models = ', '.join(f"{m}: {n}" for m, n in stats.get('models', {}).items()) or 'none'
+        errs = ''.join(f"<li style='font-size:12px;color:#666;'>{_html.escape(e)}</li>"
+                       for e in stats.get('errors', [])[-5:])
+        banner = '#2E7D32' if ok else '#E65100'
+        body = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;max-width:680px;margin:auto;background:#f5f5f5;padding:20px;">
+  <div style="background:{banner};color:white;padding:20px;border-radius:12px;margin-bottom:16px;">
+    <h2 style="margin:0;">Portfolio AI health report</h2>
+    <p style="margin:6px 0 0;opacity:0.9;font-size:13px;">{datetime.now().strftime('%d %B %Y %H:%M')}</p>
+  </div>
+  <div style="background:white;border-radius:10px;padding:18px;margin-bottom:14px;">
+    <h3 style="margin:0 0 10px;font-size:15px;">Needs attention</h3>
+    <ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.6;">{rows}</ul>
+  </div>
+  <div style="background:white;border-radius:10px;padding:18px;font-size:13px;line-height:1.7;">
+    <h3 style="margin:0 0 10px;font-size:15px;">Groq usage this run</h3>
+    Calls: {stats.get('calls', 0)} | OK: {stats.get('ok', 0)} | Failed: {stats.get('failed', 0)} |
+    429 retries: {stats.get('retries_429', 0)} | Fallbacks: {stats.get('fallbacks', 0)}<br>
+    Models used: {_html.escape(models)}
+    <ul style="margin:8px 0 0;padding-left:18px;">{errs}</ul>
+  </div>
+</body></html>"""
+        send_report_email(("⚠️ Portfolio AI health: attention needed" if not ok
+                           else "✅ Portfolio AI health: all good"), body)
+    except Exception as e:
+        print(f"[health] Could not send health email: {e}")
+
+
+def _check_sell_columns():
+    """Holdings must have the PENDING SELL columns, otherwise sells cannot be flagged."""
+    try:
+        from sheets_handler import get_sheets
+        holdings_sheet, _ = get_sheets()
+        headers = [h.strip() for h in holdings_sheet.row_values(1)]
+        missing = [c for c in REQUIRED_SELL_COLUMNS if c not in headers]
+        if missing:
+            _note_issue(f"Holdings sheet is MISSING column(s) {missing} — SELL decisions cannot be "
+                        f"flagged for the morning job (falling back to immediate sell at the close). "
+                        f"Add these headers to row 1 of the Holdings tab.")
+    except Exception as e:
+        _note_issue(f"Could not verify Holdings columns ({e}).")
 
 
 # ── RULE 1.1: Market status via yfinance (replaces hardcoded holiday list) ────
@@ -80,14 +185,59 @@ def did_market_trade_today():
 
 # ── MORNING JOB: Execute pending sells at open price (Flaw 3.4 Option A) ─────
 
+def _flatten_columns(df):
+    """Newer yfinance returns MultiIndex columns (Price, Ticker); keep only the Price level."""
+    if df is None:
+        return None
+    if getattr(df.columns, 'nlevels', 1) > 1:
+        df = df.copy()
+        df.columns = df.columns.get_level_values(0)
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()]
+    return df
+
+
+def _get_open_price(ticker_yf):
+    """Today's opening price: first 1-minute candle's Open, else the daily candle's Open. None if unknown."""
+    import yfinance as yf
+    today = date.today()
+
+    try:
+        hist = _flatten_columns(yf.download(ticker_yf, period="1d", interval="1m", progress=False))
+        if hist is not None and not hist.empty and 'Open' in hist.columns:
+            mask = [ts.date() == today for ts in hist.index]
+            todays = hist[mask]
+            if not todays.empty:
+                value = float(todays['Open'].iloc[0])
+                if value > 0:
+                    return round(value, 2)
+    except Exception as e:
+        print(f"[main] 1-minute open lookup failed for {ticker_yf}: {e}")
+
+    try:
+        daily = _flatten_columns(yf.Ticker(ticker_yf).history(period="5d", interval="1d"))
+        if daily is not None and not daily.empty and 'Open' in daily.columns:
+            mask = [ts.date() == today for ts in daily.index]
+            todays = daily[mask]
+            if not todays.empty:
+                value = float(todays['Open'].iloc[0])
+                if value > 0:
+                    return round(value, 2)
+    except Exception as e:
+        print(f"[main] Daily open lookup failed for {ticker_yf}: {e}")
+    return None
+
+
 def execute_pending_sells():
     """
     Runs at 9:20 AM IST via --morning flag.
     Checks Google Sheets for PENDING_SELL flags set yesterday at 3:45 PM.
     Fetches today's opening price and records it as the actual sell price.
+    A sale that cannot be executed keeps its PENDING_SELL flag (it retries next morning)
+    and triggers an alert email.
     """
-    import yfinance as yf
     print("\n[main] Morning job: Executing pending sells at open price...")
+    failures, notes = [], []
 
     try:
         pending = get_pending_sells()
@@ -96,24 +246,25 @@ def execute_pending_sells():
             return
 
         for stock in pending:
-            ticker_yf = stock['ticker'] + ".NS"
+            ticker = stock['ticker']
             try:
-                hist = yf.download(ticker_yf, period="1d", interval="1m", progress=False)
-                today_str = date.today().strftime('%Y-%m-%d')
-                today_data = hist[hist.index.strftime('%Y-%m-%d') == today_str]
+                open_price = _get_open_price(ticker + ".NS")
+                if not open_price:
+                    open_price = stock.get('pending_sell_price') or None
+                    if open_price:
+                        notes.append(f"{ticker}: no open price available — sold at yesterday's decision "
+                                     f"price Rs.{open_price}.")
+                    else:
+                        failures.append(f"{ticker}: no open price AND no decision price — NOT sold, "
+                                        f"flag kept, will retry next morning.")
+                        continue
 
-                if today_data.empty:
-                    print(f"[main] No open price for {stock['ticker']} -- using decision price as fallback.")
-                    open_price = stock.get('pending_sell_price') or stock.get('buying_price')
-                else:
-                    open_price = round(float(today_data['Open'].iloc[0]), 2)
-
-                print(f"[main] {stock['ticker']} -- Open price: Rs.{open_price}")
+                print(f"[main] {ticker} -- sell price: Rs.{open_price}")
 
                 pnl_result = process_sell(
                     stock={
-                        'ticker':       stock['ticker'],
-                        'stock_name':   stock.get('stock_name', stock['ticker']),
+                        'ticker':       ticker,
+                        'stock_name':   stock.get('stock_name', ticker),
                         'industry':     stock.get('industry', 'N/A'),
                         'buying_price': stock['buying_price'],
                         'buying_date':  stock['buying_date'],
@@ -124,14 +275,36 @@ def execute_pending_sells():
                 )
 
                 if pnl_result:
-                    clear_pending_sell_flag(stock['ticker'], stock['buying_price'], stock['buying_date'])
-                    print(f"[main] {stock['ticker']} sell executed at Rs.{open_price}")
+                    clear_pending_sell_flag(ticker, stock['buying_price'], stock['buying_date'])
+                    print(f"[main] {ticker} sell executed at Rs.{open_price}")
+                else:
+                    failures.append(f"{ticker}: process_sell returned nothing (P&L record failed) — "
+                                    f"holding and PENDING flag kept, will retry next morning.")
 
             except Exception as e:
-                print(f"[main] Error executing pending sell for {stock['ticker']}: {e}")
+                failures.append(f"{ticker}: error while selling — {e}")
 
     except Exception as e:
-        print(f"[main] execute_pending_sells error: {e}")
+        failures.append(f"execute_pending_sells crashed: {e}")
+
+    if failures:
+        _send_alert("⚠️ Pending sell NOT executed", failures + notes)
+    elif notes:
+        _send_alert("ℹ️ Pending sell executed at decision price", notes)
+
+
+def _flag_sell_with_retry(ticker, decision_price, target_hit):
+    """flag_pending_sell up to 2 times (5 s apart). A False return counts as a failure."""
+    for attempt in (1, 2):
+        try:
+            if flag_pending_sell(ticker=ticker, decision_price=decision_price, target_hit=target_hit):
+                return True
+            print(f"[main] flag_pending_sell({ticker}) returned False (attempt {attempt}/2)")
+        except Exception as e:
+            print(f"[main] flag_pending_sell({ticker}) raised {e} (attempt {attempt}/2)")
+        if attempt == 1:
+            time.sleep(5)
+    return False
 
 
 # ── MAIN ANALYSIS ─────────────────────────────────────────────────────────────
@@ -148,8 +321,13 @@ def run_analysis(test_mode=False, morning_job=False):
             execute_pending_buys()
         except Exception as e:
             print(f"[main] Pending buys execution error: {e}")
+            _send_alert("⚠️ Pending buys execution failed", [str(e)])
 
         return []
+
+    HEALTH['issues'].clear()
+    HEALTH['failed_verdicts'].clear()
+    llm_reset_stats()
 
     print("\n" + "="*60)
     print(f"  PORTFOLIO AI -- Starting at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}")
@@ -172,6 +350,9 @@ def run_analysis(test_mode=False, morning_job=False):
         print("[main] Market closed today -- skipping all market-dependent tasks.")
         print("="*60 + "\n")
         return []
+
+    if not test_mode and USE_GOOGLE_SHEETS:
+        _check_sell_columns()
 
     # Step 0: Split detection (Flaw 1.4)
     if not test_mode:
@@ -256,8 +437,12 @@ def run_analysis(test_mode=False, morning_job=False):
         )
         stock.update(sentiment)
 
-        # Store today's verdict for future 5-day memory
-        if not test_mode:
+        if sentiment.get('analysis_failed'):
+            # A failed call must NOT be stored: it would look like a NEUTRAL day and reset the BEARISH streak.
+            HEALTH['failed_verdicts'].append(f"{stock['ticker']}: {sentiment.get('recommendation', 'analysis failed')}")
+            print(f"   [warning] {stock['ticker']}: AI analysis FAILED — verdict not stored.")
+        elif not test_mode:
+            # Store today's verdict for future 5-day memory
             try:
                 log_sentiment_history(
                     ticker=stock['ticker'],
@@ -267,7 +452,8 @@ def run_analysis(test_mode=False, morning_job=False):
             except Exception as e:
                 print(f"   [warning] Could not log sentiment for {stock['ticker']}: {e}")
 
-        print(f"   {stock['ticker']}: News={sentiment.get('news_sentiment')} | AI={sentiment.get('overall_sentiment')} | Flip={sentiment.get('sentiment_flip','NO')}")
+        print(f"   {stock['ticker']}: News={sentiment.get('news_sentiment')} | AI={sentiment.get('overall_sentiment')} | Flip={sentiment.get('sentiment_flip','NO')}"
+              + (" | FAILED" if sentiment.get('analysis_failed') else ""))
     print()
 
     # Step 5: Decision Engine
@@ -277,7 +463,7 @@ def run_analysis(test_mode=False, morning_job=False):
         if not test_mode:
             try:
                 stock['sentiment_history'] = get_sentiment_history(stock['ticker'], days=5)
-            except:
+            except Exception:
                 stock['sentiment_history'] = []
         else:
             stock['sentiment_history'] = []
@@ -300,17 +486,13 @@ def run_analysis(test_mode=False, morning_job=False):
         for s in sell_stocks:
             target_hit = 'TARGET PRICE HIT' in s.get('reason', '')
             print(f"[main] SELL decision for {s['ticker']} -- flagging as PENDING_SELL")
+            if _flag_sell_with_retry(s['ticker'], s['live_price'], target_hit):
+                continue
+
+            # Fallback: execute immediately if flagging fails
+            _note_issue(f"{s['ticker']}: could not flag PENDING_SELL — selling immediately at the closing price.")
             try:
-                flag_pending_sell(
-                    ticker=s['ticker'],
-                    decision_price=s['live_price'],
-                    target_hit=target_hit
-                )
-            except Exception as e:
-                # Fallback: execute immediately if flagging fails
-                print(f"[main] Could not flag {s['ticker']} as PENDING_SELL: {e}")
-                print(f"[main] Falling back to immediate sell at closing price...")
-                process_sell(
+                sold = process_sell(
                     stock={
                         'ticker':       s['ticker'],
                         'stock_name':   s['stock_name'],
@@ -322,6 +504,10 @@ def run_analysis(test_mode=False, morning_job=False):
                     },
                     selling_price=s['live_price']
                 )
+                if not sold:
+                    _note_issue(f"{s['ticker']}: immediate-sell fallback ALSO failed — SELL NOT RECORDED. Act manually.")
+            except Exception as e:
+                _note_issue(f"{s['ticker']}: immediate-sell fallback raised {e} — SELL NOT RECORDED. Act manually.")
     else:
         print("   [TEST MODE] Email not sent.")
         with open("test_report.html", "w", encoding="utf-8") as f:
@@ -338,22 +524,40 @@ def run_analysis(test_mode=False, morning_job=False):
     if not test_mode:
         print("Step 9: Scouting new growth stocks...")
         candidates = find_growth_stocks(top_n=5)
-        if candidates:
-            for c in candidates:
-                try:
-                    log_recommendation(
-                        ticker=c['ticker'],
-                        recommended_price=c['current_price'],
-                        target_price=c.get('ai_target_price'),
-                        recommended_date=date.today().strftime('%Y-%m-%d')
-                    )
-                except Exception as e:
-                    print(f"   [warning] Could not log recommendation for {c['ticker']}: {e}")
-            send_scout_email(candidates)
-            print(f"   -> Scout email sent with {len(candidates)} candidates.")
+        after_close = is_after_market_close()
+
+        if not after_close:
+            # The scout email is withheld before 15:30 IST, so these picks must NOT be logged:
+            # the accuracy report would otherwise count picks you were never shown.
+            _note_issue("Scout ran before the 15:30 IST gate — scout email withheld and "
+                        f"{len(candidates or [])} pick(s) NOT logged. Re-run the job after 15:30 IST.")
+        elif candidates:
+            try:
+                send_scout_email(candidates)
+                print(f"   -> Scout email sent with {len(candidates)} candidates.")
+                for c in candidates:
+                    try:
+                        try:
+                            log_recommendation(
+                                ticker=c['ticker'],
+                                recommended_price=c['current_price'],
+                                target_price=c.get('ai_target_price'),
+                                recommended_date=date.today().strftime('%Y-%m-%d'),
+                                sector=c.get('sector')
+                            )
+                        except TypeError:
+                            # sheets_handler.py not patched yet (old signature has no sector)
+                            log_recommendation(
+                                ticker=c['ticker'],
+                                recommended_price=c['current_price'],
+                                target_price=c.get('ai_target_price'),
+                                recommended_date=date.today().strftime('%Y-%m-%d')
+                            )
+                    except Exception as e:
+                        print(f"   [warning] Could not log recommendation for {c['ticker']}: {e}")
+            except Exception as e:
+                _note_issue(f"Scout email failed ({e}) — picks NOT logged.")
         else:
-            # No longer fails silently — sends notification email
-            from stock_scout import send_no_picks_email
             send_no_picks_email()
             print("   -> No strong candidates found today. Notification email sent.")
         print()
@@ -361,6 +565,10 @@ def run_analysis(test_mode=False, morning_job=False):
     # Save dashboard cache
     if not test_mode:
         _save_dashboard_cache(results, fear_greed)
+
+    # Health email (only when something needs attention)
+    if not test_mode:
+        _send_health_email(llm_get_stats(), HEALTH['issues'], HEALTH['failed_verdicts'])
 
     print("\n" + "="*60)
     print(f"  DONE -- Analysis complete at {datetime.now().strftime('%H:%M:%S')}")
@@ -373,7 +581,7 @@ def _save_dashboard_cache(results, fear_greed):
     """Save all data needed by index.html to last_analysis.json"""
     try:
         import yfinance as yf
-        from weekly_monthly_summary import get_recommendation_accuracy
+        from accuracy_tracker import get_recommendation_accuracy
 
         idx_list = [
             {"symbol": "^NSEI",             "name": "NIFTY 50"},
@@ -390,7 +598,7 @@ def _save_dashboard_cache(results, fear_greed):
                 chg   = round(price - prev, 2)
                 pct   = round((chg / prev * 100), 2) if prev else 0
                 indices_data.append({"name": idx['name'], "price": round(price,2), "change": chg, "change_pct": pct})
-            except:
+            except Exception:
                 indices_data.append({"name": idx['name'], "price": 0, "change": 0, "change_pct": 0})
 
         total_investment = sum(s.get('investment_amt') or 0 for s in results)
@@ -431,6 +639,7 @@ def _save_dashboard_cache(results, fear_greed):
                 'pending_sell':           s.get('pending_sell', False),
                 'nifty_return_since_buy': s.get('nifty_return_since_buy'),
                 'sentiment_flip':         s.get('sentiment_flip', 'NO'),
+                'analysis_failed':        s.get('analysis_failed', False),
             })
 
         rec_accuracy = None
