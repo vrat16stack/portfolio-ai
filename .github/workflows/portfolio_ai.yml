@@ -8,19 +8,41 @@ on:
     - cron: '30 3 * * 1-5'
     # 9:20 AM IST (Mon-Fri) — morning job: execute pending sells + pending buys at open price
     - cron: '50 3 * * 1-5'
-    # 8:00 AM IST Saturday — weekly summary
+    # 8:00 AM IST Saturday — weekly summary (+ separate accuracy email with PDF)
     - cron: '30 2 * * 6'
     # 7:00 AM IST Sunday — weekly Google Sheets backup (Flaw 5.3)
     - cron: '30 1 * * 0'
-    # NOTE: Month-end detection is handled INSIDE main.py via should_send_monthly()
+    # NOTE: Month-end summary is sent from inside main.py (should_send_monthly()),
+    #       so there is no separate monthly cron and no duplicate monthly email.
 
   workflow_dispatch:
+    inputs:
+      job:
+        description: 'Which job to run manually'
+        required: true
+        default: 'analysis'
+        type: choice
+        options:
+          - analysis
+          - morning_approvals
+          - morning_sells
+          - weekly
+          - monthly
+          - backup
 
 jobs:
   run-analysis:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
+    # Secrets are available to every step; the failure e-mail step needs them too.
+    env:
+      EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
+      EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
+      EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
+      GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
+      GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
 
     steps:
       - name: Checkout repository
@@ -33,11 +55,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install gspread google-auth yfinance ta groq flask pandas openpyxl requests beautifulsoup4
+          pip install gspread google-auth yfinance ta groq flask pandas openpyxl requests beautifulsoup4 reportlab
 
       - name: Create credentials file
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: |
-          echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials.json
+          printf '%s' "$GOOGLE_CREDENTIALS" > credentials.json
 
       - name: Create config file
         run: |
@@ -48,6 +72,8 @@ jobs:
           EMAIL_RECEIVER          = os.environ.get("EMAIL_RECEIVER", "")
           GROQ_API_KEY            = os.environ.get("GROQ_API_KEY", "")
           GROQ_MODEL              = "openai/gpt-oss-120b"
+          GROQ_FALLBACK_MODELS    = ["openai/gpt-oss-20b", "qwen/qwen3.6-27b"]
+          GROQ_TPM_BUDGET         = 6500
           GEMINI_API_KEY          = ""
           ALPHA_VANTAGE_KEY       = ""
           GOOGLE_SHEET_ID         = os.environ.get("GOOGLE_SHEET_ID", "")
@@ -64,109 +90,58 @@ jobs:
           EXCEL_FILE_PATH         = ""
           EOF
 
-      # ── Detect which job to run based on UTC time and day ──────────────────
+      # ── Decide which job to run: by the cron that fired (not by the clock) ──
       - name: Detect job type
         id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE:   ${{ github.event.schedule }}
+          INPUT_JOB:  ${{ github.event.inputs.job }}
         run: |
-          HOUR=$(date -u +%H)
-          MIN=$(date -u +%M)
-          DOW=$(date -u +%u)   # 1=Mon ... 7=Sun
-          DAY=$(date -u +%d)
-          MONTH=$(date -u +%m)
-          YEAR=$(date -u +%Y)
-
           JOB="analysis"
-
-          # Sunday = backup
-          if [ "$DOW" = "7" ]; then
-            JOB="backup"
-
-          # Saturday = weekly summary
-          elif [ "$DOW" = "6" ]; then
-            JOB="weekly"
-
-          # Morning window (3:xx UTC = 9:xx AM IST)
-          elif [ "$HOUR" = "3" ]; then
-            # 3:30 UTC = 9:00 AM IST → approval checker (read Gmail, store PENDING BUY)
-            # 3:50 UTC = 9:20 AM IST → morning job (execute pending sells + pending buys)
-            # Use minute to distinguish the two morning jobs
-            if [ "$MIN" -le "40" ]; then
-              JOB="morning_approvals"
-            else
-              JOB="morning_sells"
-            fi
-
-          # Last day of month — monthly + analysis
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            JOB="${INPUT_JOB:-analysis}"
           else
-            LAST_DAY=$(python3 -c "import calendar; print(calendar.monthrange(int('$YEAR'), int('$MONTH'))[1])")
-            if [ "$DAY" = "$LAST_DAY" ]; then
-              JOB="monthly_and_analysis"
-            fi
+            case "$SCHEDULE" in
+              '30 3 * * 1-5')  JOB="morning_approvals" ;;   # 9:00 AM IST
+              '50 3 * * 1-5')  JOB="morning_sells" ;;       # 9:20 AM IST
+              '15 10 * * 1-5') JOB="analysis" ;;            # 3:45 PM IST
+              '30 2 * * 6')    JOB="weekly" ;;              # Sat 8:00 AM IST
+              '30 1 * * 0')    JOB="backup" ;;              # Sun 7:00 AM IST
+              *) echo "Unknown schedule '$SCHEDULE'"; exit 1 ;;
+            esac
           fi
-
-          echo "job=$JOB" >> $GITHUB_OUTPUT
-          echo "Detected job: $JOB (UTC $HOUR:$MIN, DOW=$DOW)"
+          echo "job=$JOB" >> "$GITHUB_OUTPUT"
+          echo "Detected job: $JOB (event=$EVENT_NAME schedule='$SCHEDULE')"
 
       # ── 9:00 AM IST: Read Gmail replies, store PENDING BUY in PendingBuys sheet ──
       - name: Run approval checker (9:00 AM IST)
         if: steps.detect.outputs.job == 'morning_approvals'
-        env:
-          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
-          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
-          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: python approval_checker.py
 
       # ── 9:20 AM IST: Execute pending sells + pending buys at actual open price ──
       - name: Run morning job (9:20 AM IST)
         if: steps.detect.outputs.job == 'morning_sells'
-        env:
-          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
-          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
-          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: python main.py --morning
 
-      # ── Daily analysis (3:45 PM IST) ───────────────────────────────────────
+      # ── Daily analysis (3:45 PM IST) — also sends the monthly summary on the last day ──
       - name: Run daily analysis (3:45 PM IST)
-        if: steps.detect.outputs.job == 'analysis' || steps.detect.outputs.job == 'monthly_and_analysis'
-        env:
-          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
-          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
-          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        if: steps.detect.outputs.job == 'analysis'
         run: python main.py
 
       # ── Weekly summary (Saturday 8:00 AM IST) ──────────────────────────────
       - name: Run weekly summary (Saturday)
         if: steps.detect.outputs.job == 'weekly'
-        env:
-          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
-          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
-          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: python weekly_monthly_summary.py --weekly
 
-      # ── Monthly summary (last day of month) ────────────────────────────────
-      - name: Run monthly summary
-        if: steps.detect.outputs.job == 'monthly' || steps.detect.outputs.job == 'monthly_and_analysis'
-        env:
-          EMAIL_SENDER:    ${{ secrets.EMAIL_SENDER }}
-          EMAIL_PASSWORD:  ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER:  ${{ secrets.EMAIL_RECEIVER }}
-          GROQ_API_KEY:    ${{ secrets.GROQ_API_KEY }}
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+      # ── Monthly summary (manual run only; the scheduled one comes from main.py) ──
+      - name: Run monthly summary (manual)
+        if: steps.detect.outputs.job == 'monthly'
         run: python weekly_monthly_summary.py --monthly
 
       # ── Sunday backup (Flaw 5.3) ────────────────────────────────────────────
       - name: Run Google Sheets backup (Sunday)
         if: steps.detect.outputs.job == 'backup'
-        env:
-          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
         run: python sheets_handler.py --backup
 
       - name: Commit backup to repo (keep only the latest)
@@ -191,9 +166,10 @@ jobs:
 
           git diff --staged --quiet || git commit -m "Weekly backup $(date '+%Y-%m-%d') (older backups pruned)"
           git push || true
+
       # ── Deploy dashboard to GitHub Pages ───────────────────────────────────
       - name: Deploy dashboard
-        if: steps.detect.outputs.job == 'analysis' || steps.detect.outputs.job == 'monthly_and_analysis'
+        if: steps.detect.outputs.job == 'analysis'
         run: |
           if [ -f last_analysis.json ]; then
             cp last_analysis.json portfolio_data.json
@@ -203,3 +179,24 @@ jobs:
           git add portfolio_data.json || true
           git diff --staged --quiet || git commit -m "Update portfolio data $(date '+%Y-%m-%d %H:%M')"
           git push || true
+
+      # ── If anything above failed, tell the owner (a silent failure = no sells, no scout) ──
+      - name: Email on failure
+        if: failure()
+        env:
+          JOB_NAME: ${{ steps.detect.outputs.job || 'unknown' }}
+          RUN_URL:  ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - << 'PY'
+          import os
+          try:
+              from email_handler import send_report_email
+              job, url = os.environ.get("JOB_NAME", "unknown"), os.environ.get("RUN_URL", "")
+              body = (f'<html><body style="font-family:Arial,sans-serif;">'
+                      f'<h2 style="color:#B71C1C;">Portfolio AI job FAILED: {job}</h2>'
+                      f'<p>The scheduled job did not finish. Open the run log to see why:</p>'
+                      f'<p><a href="{url}">{url}</a></p></body></html>')
+              send_report_email(f"❌ Portfolio AI job FAILED: {job}", body)
+          except Exception as e:
+              print(f"Could not send failure email: {e}")
+          PY
