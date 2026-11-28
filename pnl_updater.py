@@ -67,8 +67,15 @@ def _process_sell_sheets(stock, selling_price, selling_date=None):
     if not current_price:
         current_price = selling_price
 
-    add_to_pnl(stock, selling_price, selling_date)
-    remove_stock_from_holdings(stock["ticker"], buying_price, buying_date)
+    sno = add_to_pnl(stock, selling_price, selling_date)
+    if sno is None:
+        print(f"[pnl_updater] ERROR: could not record {stock['ticker']} in PnL - holding NOT removed; "
+              f"the PENDING SELL flag stays so it retries next morning.")
+        return None
+    removed = remove_stock_from_holdings(stock["ticker"], buying_price, buying_date)
+    if not removed:
+        print(f"[pnl_updater] WARNING: {stock['ticker']} was recorded in PnL but could NOT be removed "
+              f"from Holdings - remove that row manually.")
 
     pnl = {
         "investment_amt":   investment_amt,

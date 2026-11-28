@@ -75,18 +75,45 @@ def _fetch_news_headlines(ticker, stock_name):
     return headlines
 
 
+_NEWS_RISK_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "decision":   {"type": "string", "enum": ["CANCEL", "PROCEED"]},
+        "risk_level": {"type": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"]},
+        "key_news":   {"type": "string"},
+        "reasoning":  {"type": "string"},
+        "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+    },
+    "required": ["decision", "risk_level", "key_news", "reasoning", "confidence"],
+    "additionalProperties": False,
+}
+
+
+def _valid_news_risk(d):
+    """Reject replies whose enum fields are missing or outside the allowed values."""
+    if not isinstance(d, dict):
+        return False
+    for key in ("decision", "risk_level", "confidence"):
+        if str(d.get(key, "")).strip().upper() not in _NEWS_RISK_SCHEMA["properties"][key]["enum"]:
+            return False
+    return True
+
+
 def _analyse_news_with_groq(ticker, stock_name, headlines):
     """
     Q2 FIX: Ask Groq to judge whether overnight news poses a REAL risk
     to executing this buy order tomorrow morning.
 
     Groq is instructed to be CONSERVATIVE — only cancel for confirmed,
-    severe, company-specific events. When in doubt → PROCEED.
+    severe, company-specific events. When in doubt -> PROCEED.
+
+    All Groq access goes through llm_client (model fallback, pacing, JSON schema).
+    If the AI check itself is unavailable the buy is still queued, but the returned
+    risk_level is 'UNKNOWN' so the "Buy Queued" email says it was NOT news-screened.
 
     Returns: (should_cancel: bool, risk_level: str, reasoning: str, key_news: str)
     """
-    from groq import Groq
-    from config import GROQ_API_KEY, GROQ_MODEL
+    from llm_client import ask_json
 
     if not headlines:
         print(f"[approval] {ticker}: No news found — proceeding with buy.")
@@ -126,55 +153,36 @@ DO NOT CANCEL for:
 Be CONSERVATIVE — only cancel if you are CONFIDENT the news is severe and company-specific.
 When in doubt, PROCEED. A false cancellation is worse than a bad entry.
 
-Respond in EXACTLY this format, no extra lines:
-DECISION: [CANCEL or PROCEED]
-RISK_LEVEL: [CRITICAL / HIGH / MEDIUM / LOW / NONE]
-KEY_NEWS: [Most relevant headline in one line, or NONE]
-REASONING: [2-3 sentences. If CANCEL: what specific confirmed event. If PROCEED: why news does not warrant cancellation.]
-CONFIDENCE: [HIGH / MEDIUM / LOW]"""
+Respond with ONE JSON object only, with these fields:
+- decision: CANCEL or PROCEED
+- risk_level: CRITICAL, HIGH, MEDIUM, LOW or NONE
+- key_news: most relevant headline in one line, or NONE
+- reasoning: 2-3 sentences. If CANCEL: what specific confirmed event. If PROCEED: why the news does not warrant cancellation.
+- confidence: HIGH, MEDIUM or LOW"""
 
-    try:
-        client   = Groq(api_key=GROQ_API_KEY)
-        response = client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=250,
-            temperature=0.1
-        )
-        text = response.choices[0].message.content.strip()
+    res = ask_json(prompt, _NEWS_RISK_SCHEMA, name='news_risk', validate=_valid_news_risk,
+                   max_tokens=1000, label=f"news-risk {ticker}")
 
-        decision   = 'PROCEED'
-        risk_level = 'NONE'
-        key_news   = ''
-        reasoning  = ''
-        confidence = 'LOW'
+    if not res.ok:
+        print(f"[approval] AI news check FAILED for {ticker}: {res.error}")
+        return (False, 'UNKNOWN',
+                f'AI news check unavailable ({str(res.error)[:120]}) - buy queued UNCHECKED', '')
 
-        for line in text.split('\n'):
-            line = line.strip()
-            if line.startswith('DECISION:'):
-                decision   = line.split(':', 1)[1].strip().upper()
-            elif line.startswith('RISK_LEVEL:'):
-                risk_level = line.split(':', 1)[1].strip().upper()
-            elif line.startswith('KEY_NEWS:'):
-                key_news   = line.split(':', 1)[1].strip()
-            elif line.startswith('REASONING:'):
-                reasoning  = line.split(':', 1)[1].strip()
-            elif line.startswith('CONFIDENCE:'):
-                confidence = line.split(':', 1)[1].strip().upper()
+    d          = res.data
+    decision   = str(d.get('decision', 'PROCEED')).strip().upper()
+    risk_level = str(d.get('risk_level', 'NONE')).strip().upper()
+    key_news   = str(d.get('key_news') or '').strip()
+    reasoning  = str(d.get('reasoning') or '').strip()
+    confidence = str(d.get('confidence', 'LOW')).strip().upper()
 
-        # Only cancel if Groq says CANCEL with at least MEDIUM confidence
-        should_cancel = (decision == 'CANCEL' and confidence in ('HIGH', 'MEDIUM'))
+    # Only cancel if the model says CANCEL with at least MEDIUM confidence
+    should_cancel = (decision == 'CANCEL' and confidence in ('HIGH', 'MEDIUM'))
 
-        print(f"[approval] Q2 News analysis for {ticker}: "
-              f"{decision} | Risk: {risk_level} | Confidence: {confidence}")
-        print(f"[approval] Reasoning: {reasoning}")
+    print(f"[approval] Q2 News analysis for {ticker}: "
+          f"{decision} | Risk: {risk_level} | Confidence: {confidence}")
+    print(f"[approval] Reasoning: {reasoning}")
 
-        return should_cancel, risk_level, reasoning, key_news
-
-    except Exception as e:
-        print(f"[approval] Groq news analysis error for {ticker}: {e}")
-        # On any Groq failure → PROCEED (don't block buy on technical error)
-        return False, 'UNKNOWN', f'News analysis unavailable ({e}) — proceeding.', ''
+    return should_cancel, risk_level, reasoning, key_news
 
 
 def _send_news_cancel_email(ticker, stock_name, qty, scout_price,
@@ -468,7 +476,17 @@ def send_qty_request_email(ticker, stock_info):
     print(f"[approval] Qty request sent for {ticker}")
 
 
-def _send_pending_buy_queued_email(ticker, stock_info, qty, scout_price, original_target):
+def _send_pending_buy_queued_email(ticker, stock_info, qty, scout_price, original_target,
+                                   news_ok=True):
+    if news_ok:
+        news_banner = ('<div style="background:#E8F5E9;border-radius:8px;padding:10px 14px;margin-bottom:12px;'
+                       'font-size:13px;color:#2E7D32;">'
+                       '\u2705 Overnight news check passed \u2014 no critical risks detected.</div>')
+    else:
+        news_banner = ('<div style="background:#FFF3E0;border:1px solid #FFB74D;border-radius:8px;'
+                       'padding:10px 14px;margin-bottom:12px;font-size:13px;color:#E65100;">'
+                       '\u26a0\ufe0f AI news check was UNAVAILABLE \u2013 queued WITHOUT a news screen. '
+                       'Glance at the latest headlines before the 9:20 AM open.</div>')
     upside_pct     = round(((original_target - scout_price) / scout_price) * 100, 2) \
         if scout_price else 0
     investment_est = round(scout_price * qty, 2)
@@ -511,10 +529,7 @@ def _send_pending_buy_queued_email(ticker, stock_info, qty, scout_price, origina
           <td style="padding:10px 14px;">{stock_info.get('cap_category','N/A')}</td></tr>
     </table>
   </div>
-  <div style="background:#E8F5E9;border-radius:8px;padding:10px 14px;margin-bottom:12px;
-              font-size:13px;color:#2E7D32;">
-    ✅ Overnight news check passed — no critical risks detected.
-  </div>
+  {news_banner}
   <div style="background:#E3F2FD;border-radius:12px;padding:16px;margin-bottom:16px;">
     <h3 style="margin:0 0 10px;color:#1565C0;">⚙️ What Happens Next</h3>
     <ol style="margin:0;padding-left:18px;line-height:1.9;font-size:14px;">
@@ -686,7 +701,8 @@ def process_approvals():
 
         if stored:
             _send_pending_buy_queued_email(
-                ticker, stock_info, qty, scout_price, original_target
+                ticker, stock_info, qty, scout_price, original_target,
+                news_ok=(risk_level != 'UNKNOWN')
             )
 
     # ── Qty requests ────────────────────────────────────────────────────────

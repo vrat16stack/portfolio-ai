@@ -46,15 +46,13 @@ def fetch_market_cap(ticker_yf):
 # ── FLAW 2.1: Consecutive BEARISH count ───────────────────────────────────────
 
 def count_consecutive_bearish(sentiment_history):
-    """
-    Count how many consecutive BEARISH verdicts appear at the end of history.
-    Example: [BULLISH, NEUTRAL, BEARISH, BEARISH] → returns 2
-    """
+    """Consecutive BEARISH *days* ending at the latest entry (one verdict per calendar date)."""
     if not sentiment_history:
         return 0
+    by_date = {str(e.get('date', ''))[:10]: str(e.get('verdict', '')).upper() for e in sentiment_history}
     count = 0
-    for entry in reversed(sentiment_history):
-        if str(entry.get('verdict', '')).upper() == 'BEARISH':
+    for d in sorted(by_date, reverse=True):
+        if by_date[d] == 'BEARISH':
             count += 1
         else:
             break
@@ -91,6 +89,7 @@ def make_decision(stock):
 
     # FLAW 2.1: Count consecutive BEARISH days
     consecutive_bearish = count_consecutive_bearish(history)
+    analysis_failed = bool(stock.get('analysis_failed', False))
 
     # Combined signal
     if tech_signal == 'BULLISH' or ai_sentiment == 'BULLISH':
@@ -121,7 +120,13 @@ def make_decision(stock):
 
     # ── Stop loss zone ─────────────────────────────────────────────────────────
     elif growth <= stop_loss_threshold:
-        if combined == 'BEARISH':
+        if analysis_failed:
+            decision      = 'HOLD'
+            urgency       = 'HIGH'
+            reason        = (f"Loss of {abs(growth):.1f}% exceeds {cap_category} stop loss "
+                             f"({abs(stop_loss_threshold)}%) BUT today's AI analysis failed \u2014 no sell on missing data.")
+            action_detail = 'Holding \u2014 will re-evaluate when the AI analysis is available.'
+        elif combined == 'BEARISH':
             # FLAW 2.1: Require 2 consecutive BEARISH days before auto-sell
             if consecutive_bearish >= 2:
                 decision      = 'SELL'
@@ -151,10 +156,10 @@ def make_decision(stock):
 
     # ── Profit target zone ─────────────────────────────────────────────────────
     elif growth >= profit_target_threshold:
-        if combined == 'BULLISH':
+        if combined == 'BULLISH' or analysis_failed:
             decision      = 'HOLD'
             urgency       = 'LOW'
-            reason        = f'Profit of {growth:.1f}% achieved ({cap_category} target: {profit_target_threshold}%). BULLISH — holding for peak.'
+            reason        = (f'Profit of {growth:.1f}% achieved ({cap_category} target: {profit_target_threshold}%). AI analysis unavailable today — holding.' if analysis_failed else f'Profit of {growth:.1f}% achieved ({cap_category} target: {profit_target_threshold}%). BULLISH — holding for peak.')
             action_detail = 'Trail stop-loss to protect at least 50% gains.'
         else:
             decision      = 'SELL'

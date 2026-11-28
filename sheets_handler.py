@@ -508,40 +508,27 @@ def is_split_adjusted_today(ticker):
 
 # ── FLAW 3.4: PENDING SELL FLAG ────────────────────────────────────────────────
 
+REQUIRED_SELL_COLUMNS = ['Pending Sell', 'Decision Price', 'Target Hit']
+
 def flag_pending_sell(ticker, decision_price, target_hit=False):
-    """
-    Mark a stock as PENDING_SELL in Holdings sheet.
-    Actual sell executes next morning at open price via --morning job.
-    """
+    """Mark a stock PENDING_SELL. Returns False (loudly) if the sheet columns are missing."""
     try:
         holdings_sheet, _ = get_sheets()
-        records = holdings_sheet.get_all_records()
-        headers = holdings_sheet.row_values(1)
-
-        for i, row in enumerate(records, start=2):
+        headers = [h.strip() for h in holdings_sheet.row_values(1)]
+        missing = [c for c in REQUIRED_SELL_COLUMNS if c not in headers]
+        if missing:
+            print(f"[sheets] CANNOT flag PENDING_SELL - Holdings sheet is missing column(s): {missing}")
+            return False
+        for i, row in enumerate(holdings_sheet.get_all_records(), start=2):
             t = str(row.get('Stock', '') or row.get('Ticker', '')).strip().upper()
             if t == ticker.upper():
-                try:
-                    col = headers.index('Pending Sell') + 1
-                    holdings_sheet.update_cell(i, col, 'YES')
-                except ValueError:
-                    pass
-                try:
-                    col = headers.index('Decision Price') + 1
-                    holdings_sheet.update_cell(i, col, decision_price)
-                except ValueError:
-                    pass
-                try:
-                    col = headers.index('Target Hit') + 1
-                    holdings_sheet.update_cell(i, col, 'YES' if target_hit else 'NO')
-                except ValueError:
-                    pass
+                holdings_sheet.update_cell(i, headers.index('Pending Sell') + 1, 'YES')
+                holdings_sheet.update_cell(i, headers.index('Decision Price') + 1, decision_price)
+                holdings_sheet.update_cell(i, headers.index('Target Hit') + 1, 'YES' if target_hit else 'NO')
                 print(f"[sheets] {ticker} flagged as PENDING_SELL at Rs.{decision_price}")
                 return True
-
         print(f"[sheets] {ticker} not found for PENDING_SELL flag")
         return False
-
     except Exception as e:
         print(f"[sheets] Error flagging pending sell: {e}")
         return False
@@ -611,41 +598,40 @@ def clear_pending_sell_flag(ticker, buying_price, buying_date):
 # ── FLAW 2.1: SENTIMENT HISTORY ────────────────────────────────────────────────
 
 def log_sentiment_history(ticker, verdict, run_date):
-    """Store today's Groq verdict in SentimentHistory sheet"""
+    """One row per ticker per day: a re-run on the same day overwrites that day's verdict."""
     try:
         ws = get_or_create_worksheet("SentimentHistory")
         if ws is None:
             return
-
-        existing = ws.get_all_values()
-        if not existing or existing[0] != ['Date', 'Ticker', 'Verdict']:
+        rows = ws.get_all_values()
+        if not rows or rows[0][:3] != ['Date', 'Ticker', 'Verdict']:
             ws.insert_row(['Date', 'Ticker', 'Verdict'], 1)
-
-        ws.append_row([run_date, ticker.upper(), verdict.upper()])
-
+            rows = ws.get_all_values()
+        t, d = ticker.upper(), str(run_date)[:10]
+        for idx, r in enumerate(rows[1:], start=2):
+            if len(r) >= 3 and str(r[0])[:10] == d and r[1].strip().upper() == t:
+                if r[2].strip().upper() != verdict.upper():
+                    ws.update_cell(idx, 3, verdict.upper())
+                return
+        ws.append_row([d, t, verdict.upper()])
     except Exception as e:
         print(f"[sheets] Error logging sentiment history: {e}")
 
 
 def get_sentiment_history(ticker, days=5):
-    """Get last N verdicts for a stock from SentimentHistory sheet"""
+    """Last N distinct days (one verdict per day; the latest entry of a day wins)."""
     try:
         ws = get_or_create_worksheet("SentimentHistory")
         if ws is None:
             return []
-
-        records = ws.get_all_records()
-        ticker_records = [
-            r for r in records
-            if str(r.get('Ticker', '')).upper() == ticker.upper()
-        ]
-
-        ticker_records.sort(key=lambda x: str(x.get('Date', '')), reverse=True)
-        recent = ticker_records[:days]
-        recent.reverse()  # chronological order for Groq prompt
-
-        return [{'date': r['Date'], 'verdict': r['Verdict']} for r in recent]
-
+        by_date = {}
+        for r in ws.get_all_records():
+            if str(r.get('Ticker', '')).upper() != ticker.upper():
+                continue
+            d, v = str(r.get('Date', ''))[:10], str(r.get('Verdict', '')).upper()
+            if d and v:
+                by_date[d] = v
+        return [{'date': d, 'verdict': by_date[d]} for d in sorted(by_date)[-days:]]
     except Exception as e:
         print(f"[sheets] Error fetching sentiment history for {ticker}: {e}")
         return []
@@ -653,26 +639,25 @@ def get_sentiment_history(ticker, days=5):
 
 # ── FLAW 2.4: RECOMMENDATIONS LOG ──────────────────────────────────────────────
 
-def log_recommendation(ticker, recommended_price, target_price, recommended_date):
-    """Log each top-5 recommendation for accuracy tracking"""
+def log_recommendation(ticker, recommended_price, target_price, recommended_date, sector=None):
+    """One row per ticker per day; also stores the Sector (col F)."""
     try:
         ws = get_or_create_worksheet("RecommendationsLog")
         if ws is None:
             return
-
-        existing = ws.get_all_values()
-        if not existing or (existing[0] and existing[0][0] != 'Date'):
-            ws.insert_row(['Date', 'Ticker', 'Recommended Price', 'Target Price', 'Status'], 1)
-
-        ws.append_row([
-            recommended_date,
-            ticker.upper(),
-            recommended_price,
-            target_price if target_price else '',
-            'OPEN'
-        ])
-        print(f"[sheets] Logged recommendation: {ticker} @ Rs.{recommended_price}")
-
+        rows = ws.get_all_values()
+        if not rows or rows[0][0] != 'Date':
+            ws.insert_row(['Date', 'Ticker', 'Recommended Price', 'Target Price', 'Status', 'Sector'], 1)
+            rows = ws.get_all_values()
+        elif len(rows[0]) < 6 or rows[0][5] != 'Sector':
+            ws.update_cell(1, 6, 'Sector')
+        d, t = str(recommended_date)[:10], ticker.upper()
+        for r in rows[1:]:
+            if len(r) >= 2 and str(r[0])[:10] == d and r[1].strip().upper() == t:
+                print(f"[sheets] {t} already logged for {d} - skipping duplicate")
+                return
+        ws.append_row([d, t, recommended_price, target_price if target_price else '', 'OPEN', sector or ''])
+        print(f"[sheets] Logged recommendation: {t} @ Rs.{recommended_price}")
     except Exception as e:
         print(f"[sheets] Error logging recommendation: {e}")
 

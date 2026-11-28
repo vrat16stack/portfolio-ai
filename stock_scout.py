@@ -535,6 +535,21 @@ def score_stock(ticker):
         return None
 
 
+COOLDOWN_DAYS = 14
+
+
+def get_recently_recommended(days=COOLDOWN_DAYS):
+    """Tickers recommended in the last N days (before today) - skipped so the same stock is not repeated."""
+    try:
+        from sheets_handler import get_recommendations_log
+        today  = datetime.now().strftime('%Y-%m-%d')
+        cutoff = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
+        return {str(r.get('Ticker', '')).upper() for r in get_recommendations_log()
+                if cutoff <= str(r.get('Date', ''))[:10] < today}
+    except Exception:
+        return set()
+
+
 def find_growth_stocks(top_n=5, sample_size=60):
     """
     Scan daily_sample stocks, apply quality filters, return top N diversified picks.
@@ -544,7 +559,9 @@ def find_growth_stocks(top_n=5, sample_size=60):
     _sector_momentum_cache.clear()
 
     existing     = get_existing_tickers()
-    universe     = [t for t in FULL_UNIVERSE if t.upper() not in existing]
+    cooldown     = get_recently_recommended()
+    universe     = [t for t in FULL_UNIVERSE if t.upper() not in existing and t.upper() not in cooldown]
+    print(f"[scout] {len(cooldown)} ticker(s) on {COOLDOWN_DAYS}-day repeat cooldown (recommended recently).")
     daily_sample = random.sample(universe, min(sample_size, len(universe)))
 
     print(f"[scout] Scanning {len(daily_sample)} stocks from {len(universe)} candidates...")

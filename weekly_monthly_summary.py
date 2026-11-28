@@ -961,8 +961,8 @@ def send_weekly_summary():
 
     # Q4: Separate accuracy email with PDF
     print("[summary] Generating AI accuracy email...")
-    rec_accuracy = get_recommendation_accuracy()
-    send_accuracy_email(rec_accuracy)
+    from accuracy_tracker import send_accuracy_report
+    send_accuracy_report()
 
 
 def send_monthly_summary():
